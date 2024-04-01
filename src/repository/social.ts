@@ -12,7 +12,7 @@ export async function requestFriend(
     .findOneAndUpdate(
       { _id: userId },
       {
-        $push: {
+        $addToSet: {
           friends: {
             user_id: friendId,
             status: "REQUEST",
