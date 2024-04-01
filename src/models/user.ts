@@ -11,6 +11,10 @@ export interface IRegisterCredential {
   score: number;
 }
 
+export interface IRenameCredential {
+  username: string;
+}
+
 export interface IUser {
   _id: ObjectId;
   username: string;

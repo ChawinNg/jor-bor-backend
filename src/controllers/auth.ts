@@ -1,12 +1,17 @@
 import { Request, Response } from "express";
-import { ILoginCredential, IRegisterCredential, IUser } from "../models/user";
+import {
+  ILoginCredential,
+  IRegisterCredential,
+  IRenameCredential,
+  IUser,
+} from "../models/user";
 import { MongoDB } from "../database/mongo";
 import { Return } from "../utils/async";
 import bcrypt from "bcrypt";
+import { ObjectId } from "mongodb";
 
 export async function login(req: Request, res: Response) {
   let body = req.body as ILoginCredential;
-
   if (body.username === undefined || body.password === undefined)
     return res.status(200).send({ message: "invalid body" });
 
@@ -34,7 +39,6 @@ export async function login(req: Request, res: Response) {
 
 export async function register(req: Request, res: Response) {
   let body = req.body as IRegisterCredential;
-
   if (body.username === undefined || body.password === undefined)
     return res.status(200).send({ message: "invalid body" });
 
@@ -60,4 +64,32 @@ export async function register(req: Request, res: Response) {
     return res.status(500).send({ message: userErr.message });
 
   return res.status(201).send({ message: "success" });
+}
+
+export async function rename(req: Request, res: Response) {
+  let userId = req.cookies.session;
+  if (userId === undefined)
+    return res.status(401).send({ message: "required login" });
+
+  let body = req.body as IRenameCredential;
+  if (body.username === undefined)
+    return res.status(200).send({ message: "invalid body" });
+
+  let _id = ObjectId.createFromHexString(userId);
+  let renameQuery = MongoDB.db()
+    .collection<IRenameCredential>("users")
+    .findOneAndUpdate(
+      { _id },
+      {
+        $set: {
+          username: body.username,
+        },
+      }
+    );
+
+  let { error: userErr } = await Return(renameQuery);
+  if (userErr !== undefined)
+    return res.status(500).send({ message: userErr.message });
+
+  return res.status(200).send({ message: "success" });
 }
