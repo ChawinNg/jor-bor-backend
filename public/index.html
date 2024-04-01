@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<body>
+  <h1>Just for testing only</h1>
+</body>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  var socket = io("ws://localhost:8000");
+
+  socket.on("hello", (arg) => {
+    console.log(arg);
+  });
+</script>
+</html>
