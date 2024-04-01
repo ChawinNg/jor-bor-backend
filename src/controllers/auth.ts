@@ -1,17 +1,12 @@
 import { Request, Response } from "express";
-import {
-  ILoginCredential,
-  IRegisterCredential,
-  IRenameCredential,
-  IUser,
-} from "../models/user";
+import { IUserCredential, IRenameCredential, IUser } from "../models/user";
 import { MongoDB } from "../database/mongo";
 import { PromiseGuard } from "../utils/error";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 
 export async function login(req: Request, res: Response) {
-  let body = req.body as ILoginCredential;
+  let body = req.body as IUserCredential;
   if (body.username === undefined || body.password === undefined)
     return res.status(200).send({ message: "invalid body" });
 
@@ -40,7 +35,7 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function register(req: Request, res: Response) {
-  let body = req.body as IRegisterCredential;
+  let body = req.body as IUserCredential;
   if (body.username === undefined || body.password === undefined)
     return res.status(200).send({ message: "invalid body" });
 
@@ -54,12 +49,10 @@ export async function register(req: Request, res: Response) {
   }
 
   let registerQuery = MongoDB.db()
-    .collection<IRegisterCredential>("users")
+    .collection<IUserCredential>("users")
     .insertOne({
       ...body,
       password: hash,
-      score: 0,
-      friends: [],
     });
 
   let { error: userErr } = await PromiseGuard(registerQuery);
