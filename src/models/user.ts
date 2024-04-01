@@ -1,8 +1,14 @@
 import { ObjectId } from "mongodb";
 
-export interface IUserCredential {
+export interface ILoginCredential {
   username: string;
   password: string;
+}
+
+export interface IRegisterCredential {
+  username: string;
+  password: string;
+  score: number;
 }
 
 export interface IUser {

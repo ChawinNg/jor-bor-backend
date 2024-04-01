@@ -4,7 +4,7 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import express, { Express } from "express";
 import cors from "cors";
-import { login } from "./controllers/auth";
+import { login, register } from "./controllers/auth";
 import { Return } from "./utils/async";
 import { MongoDB } from "./database/mongo";
 
@@ -26,6 +26,7 @@ async function main() {
 
   const api = express.Router();
   api.post("/auth/login", login);
+  api.post("/auth/register", register);
 
   app.use("/api", api);
 

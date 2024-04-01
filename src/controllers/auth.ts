@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { IUser, IUserCredential } from "../models/user";
+import { ILoginCredential, IRegisterCredential, IUser } from "../models/user";
 import { MongoDB } from "../database/mongo";
 import { Return } from "../utils/async";
 import bcrypt from "bcrypt";
 
 export async function login(req: Request, res: Response) {
-  let body = req.body as IUserCredential;
+  let body = req.body as ILoginCredential;
 
   if (body.username === undefined || body.password === undefined)
     return res.status(200).send({ message: "invalid body" });
@@ -30,4 +30,34 @@ export async function login(req: Request, res: Response) {
   });
 
   return res.status(200).send({ message: "success" });
+}
+
+export async function register(req: Request, res: Response) {
+  let body = req.body as IRegisterCredential;
+
+  if (body.username === undefined || body.password === undefined)
+    return res.status(200).send({ message: "invalid body" });
+
+  let bcryptHash = bcrypt
+    .genSalt()
+    .then((salt) => bcrypt.hash(body.password, salt));
+
+  let { error: hashErr, value: hash } = await Return<string>(bcryptHash);
+  if (hashErr !== undefined) {
+    return res.status(500).send({ message: hashErr.message });
+  }
+
+  let registerQuery = MongoDB.db()
+    .collection<IRegisterCredential>("users")
+    .insertOne({
+      ...body,
+      password: hash,
+      score: 0,
+    });
+
+  let { error: userErr } = await Return(registerQuery);
+  if (userErr !== undefined)
+    return res.status(500).send({ message: userErr.message });
+
+  return res.status(201).send({ message: "success" });
 }
