@@ -11,6 +11,7 @@ import { Return } from "./utils/async";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import { withAuth } from "./middlewares/auth";
+import { getAllUsers } from "./controllers/user";
 
 async function main() {
   const app: Express = express();
@@ -40,6 +41,7 @@ async function main() {
   api.post("/auth/login", login);
   api.post("/auth/register", register);
   api.patch("/user", withAuth(rename));
+  api.get("/users", getAllUsers);
 
   app.use("/api", api);
 
