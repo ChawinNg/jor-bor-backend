@@ -16,6 +16,9 @@ export async function requestFriend(req: Request, res: Response) {
   if (_idErr !== undefined)
     return res.status(400).send({ message: "invalid user id" });
 
+  if (_idUser.toString() === _idFriend.toString())
+    return res.status(400).send({ message: "are you that lonely" });
+
   let { error: friendErr, value: updatedFriend } = await requestFriendRepo(
     _idFriend,
     _idUser,
