@@ -57,6 +57,7 @@ export async function register(req: Request, res: Response) {
       ...body,
       password: hash,
       score: 0,
+      friends: [],
     });
 
   let { error: userErr } = await Return(registerQuery);
@@ -67,15 +68,11 @@ export async function register(req: Request, res: Response) {
 }
 
 export async function rename(req: Request, res: Response) {
-  let userId = req.cookies.session;
-  if (userId === undefined)
-    return res.status(401).send({ message: "required login" });
-
   let body = req.body as IRenameCredential;
   if (body.username === undefined)
     return res.status(200).send({ message: "invalid body" });
 
-  let _id = ObjectId.createFromHexString(userId);
+  let _id = ObjectId.createFromHexString(res.locals.userId);
   let renameQuery = MongoDB.db()
     .collection<IRenameCredential>("users")
     .findOneAndUpdate(

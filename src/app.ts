@@ -10,6 +10,7 @@ import { login, register, rename } from "./controllers/auth";
 import { Return } from "./utils/async";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
+import { withAuth } from "./middlewares/auth";
 
 async function main() {
   const app: Express = express();
@@ -38,7 +39,7 @@ async function main() {
   const api = express.Router();
   api.post("/auth/login", login);
   api.post("/auth/register", register);
-  api.patch("/user", rename);
+  api.patch("/user", withAuth(rename));
 
   app.use("/api", api);
 
