@@ -7,11 +7,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from "http";
 import { login, register, rename } from "./controllers/auth";
-import { Return } from "./utils/async";
+import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import { withAuth } from "./middlewares/auth";
 import { getAllUsers } from "./controllers/user";
+import { addFriend } from "./controllers/social";
 
 async function main() {
   const app: Express = express();
@@ -22,7 +23,7 @@ async function main() {
   const MONGO_URI = process.env.MONGO_URI || "";
 
   let dbConnect = MongoDB.connect(MONGO_URI, "database");
-  let { error: dbErr } = await Return(dbConnect);
+  let { error: dbErr } = await PromiseGuard(dbConnect);
   if (dbErr !== undefined) {
     console.error("[server] Failed to connect to MongoDB:", dbErr);
     process.exit();
@@ -42,6 +43,8 @@ async function main() {
   api.post("/auth/register", register);
   api.patch("/user", withAuth(rename));
   api.get("/users", getAllUsers);
+
+  api.post("/social/:userId", withAuth(addFriend));
 
   app.use("/api", api);
 

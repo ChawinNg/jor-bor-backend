@@ -6,7 +6,7 @@ import {
   IUser,
 } from "../models/user";
 import { MongoDB } from "../database/mongo";
-import { Return } from "../utils/async";
+import { PromiseGuard } from "../utils/error";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 
@@ -19,14 +19,16 @@ export async function login(req: Request, res: Response) {
     .collection<IUser>("users")
     .findOne({ username: body.username });
 
-  let { error: userErr, value: user } = await Return<IUser | null>(userQuery);
+  let { error: userErr, value: user } = await PromiseGuard<IUser | null>(
+    userQuery
+  );
   if (userErr !== undefined)
     return res.status(500).send({ message: userErr.message });
   else if (user === null)
     return res.status(404).send({ message: "user not found" });
 
   let bcryptCompare = bcrypt.compare(body.password, user.password);
-  let match = await Return<boolean>(bcryptCompare);
+  let match = await PromiseGuard<boolean>(bcryptCompare);
   if (!match)
     return res.status(401).send({ message: "user credential does not match" });
 
@@ -46,7 +48,7 @@ export async function register(req: Request, res: Response) {
     .genSalt()
     .then((salt) => bcrypt.hash(body.password, salt));
 
-  let { error: hashErr, value: hash } = await Return<string>(bcryptHash);
+  let { error: hashErr, value: hash } = await PromiseGuard<string>(bcryptHash);
   if (hashErr !== undefined) {
     return res.status(500).send({ message: hashErr.message });
   }
@@ -60,7 +62,7 @@ export async function register(req: Request, res: Response) {
       friends: [],
     });
 
-  let { error: userErr } = await Return(registerQuery);
+  let { error: userErr } = await PromiseGuard(registerQuery);
   if (userErr !== undefined)
     return res.status(500).send({ message: userErr.message });
 
@@ -84,7 +86,7 @@ export async function rename(req: Request, res: Response) {
       }
     );
 
-  let { error: userErr } = await Return(renameQuery);
+  let { error: userErr, value: renameUser } = await PromiseGuard(renameQuery);
   if (userErr !== undefined)
     return res.status(500).send({ message: userErr.message });
 

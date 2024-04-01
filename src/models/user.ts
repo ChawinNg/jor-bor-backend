@@ -1,5 +1,7 @@
 import { ObjectId } from "mongodb";
 
+export type SocialStatus = "REQUEST" | "PENDING" | "ACCEPTED";
+
 export interface ILoginCredential {
   username: string;
   password: string;
@@ -9,6 +11,10 @@ export interface IRegisterCredential {
   username: string;
   password: string;
   score: number;
+  friends: {
+    user_id: ObjectId;
+    status: SocialStatus;
+  }[];
 }
 
 export interface IRenameCredential {
@@ -20,4 +26,8 @@ export interface IUser {
   username: string;
   password: string;
   score: number;
+  friends: {
+    user_id: ObjectId;
+    status: SocialStatus;
+  }[];
 }
