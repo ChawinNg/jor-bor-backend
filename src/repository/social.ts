@@ -24,15 +24,16 @@ export async function requestFriendRepo(
   return await PromiseGuard(updateFriendQuery);
 }
 
-export async function getRequestingFriendsRepo(
-  _id: ObjectId
+export async function getFriendsWithSocialStatusRepo(
+  _id: ObjectId,
+  status: SocialStatus
 ): Promise<IReturn<IRequestingFriend[]>> {
   let getAllRequestingFriendsQuery = MongoDB.db()
     .collection<IUser>("users")
     .aggregate([
       { $match: { _id } },
       { $unwind: "$friends" },
-      { $match: { "friends.status": "REQUEST" } },
+      { $match: { "friends.status": status } },
       {
         $lookup: {
           from: "users",

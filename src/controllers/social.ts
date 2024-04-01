@@ -2,11 +2,10 @@ import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 import { Guard } from "../utils/error";
 import {
-  getRequestingFriendsRepo,
+  getFriendsWithSocialStatusRepo,
   requestFriendRepo,
   updateSocialStatusRepo,
 } from "../repository/social";
-import { ifError } from "assert";
 
 export async function requestFriend(req: Request, res: Response) {
   let _idUser = ObjectId.createFromHexString(res.locals.userId);
@@ -43,7 +42,8 @@ export async function requestFriend(req: Request, res: Response) {
 export async function getRequestingFriends(req: Request, res: Response) {
   let _id = ObjectId.createFromHexString(res.locals.userId);
 
-  let { error: queryErr, value: friends } = await getRequestingFriendsRepo(_id);
+  let { error: queryErr, value: friends } =
+    await getFriendsWithSocialStatusRepo(_id, "REQUEST");
   if (queryErr !== undefined)
     return res.status(500).send({ message: queryErr.message });
 
@@ -80,4 +80,17 @@ export async function acceptFriend(req: Request, res: Response) {
     return res.status(500).send({ message: friendQueryErr.message });
 
   return res.status(200).send({ message: "success" });
+}
+
+export async function getAllFriends(req: Request, res: Response) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+
+  let { error: queryErr, value: friends } =
+    await getFriendsWithSocialStatusRepo(_id, "ACCEPTED");
+  if (queryErr !== undefined)
+    return res.status(500).send({ message: queryErr.message });
+
+  return res
+    .status(200)
+    .send(friends.map((val) => ({ id: val._id, username: val.username })));
 }

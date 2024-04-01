@@ -14,6 +14,7 @@ import { withAuth } from "./middlewares/auth";
 import { getAllUsers } from "./controllers/user";
 import {
   acceptFriend,
+  getAllFriends,
   getRequestingFriends,
   requestFriend,
 } from "./controllers/social";
@@ -51,6 +52,7 @@ async function main() {
   api.post("/social/add/:userId", withAuth(requestFriend));
   api.post("/social/accept/:userId", withAuth(acceptFriend));
   api.get("/social/requests", withAuth(getRequestingFriends));
+  api.get("/social/friends", withAuth(getAllFriends));
 
   app.use("/api", api);
 
