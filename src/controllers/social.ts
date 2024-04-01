@@ -64,22 +64,18 @@ export async function acceptFriend(req: Request, res: Response) {
   if (_idErr !== undefined)
     return res.status(400).send({ message: "invalid user id" });
 
-  let { error: userQueryErr } = await updateSocialStatusRepo(
-    _id,
-    _idFriend,
-    "REQUEST",
-    "ACCEPTED"
-  );
-  if (userQueryErr !== undefined)
+  let { error: userQueryErr, value: updatedUser } =
+    await updateSocialStatusRepo(_id, _idFriend, "REQUEST", "ACCEPTED");
+  if (updatedUser === null)
+    return res.status(404).send({ message: "user not found" });
+  else if (userQueryErr !== undefined)
     return res.status(500).send({ message: userQueryErr.message });
 
-  let { error: friendQueryErr } = await updateSocialStatusRepo(
-    _idFriend,
-    _id,
-    "PENDING",
-    "ACCEPTED"
-  );
-  if (friendQueryErr !== undefined)
+  let { error: friendQueryErr, value: updatedFriend } =
+    await updateSocialStatusRepo(_idFriend, _id, "PENDING", "ACCEPTED");
+  if (updatedFriend === null)
+    return res.status(404).send({ message: "user not found" });
+  else if (friendQueryErr !== undefined)
     return res.status(500).send({ message: friendQueryErr.message });
 
   return res.status(200).send({ message: "success" });
