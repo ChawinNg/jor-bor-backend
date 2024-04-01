@@ -25,7 +25,9 @@ export async function requestFriend(req: Request, res: Response) {
     "REQUEST"
   );
   if (updatedFriend === null)
-    return res.status(404).send({ message: "user not found" });
+    return res
+      .status(404)
+      .send({ message: "user not found or they have already added you" });
   else if (friendErr !== undefined)
     return res.status(500).send({ message: friendErr.message });
 
@@ -35,7 +37,9 @@ export async function requestFriend(req: Request, res: Response) {
     "PENDING"
   );
   if (updatedUser === null)
-    return res.status(404).send({ message: "user not found" });
+    return res
+      .status(404)
+      .send({ message: "user not found or they have already added you" });
   else if (userErr !== undefined)
     return res.status(500).send({ message: userErr.message });
 

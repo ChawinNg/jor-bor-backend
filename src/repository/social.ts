@@ -11,7 +11,7 @@ export async function requestFriendRepo(
   let updateFriendQuery = MongoDB.db()
     .collection<IUser>("users")
     .findOneAndUpdate(
-      { _id: userId },
+      { _id: userId, "friends.user_id": { $ne: friendId } },
       {
         $addToSet: {
           friends: {
