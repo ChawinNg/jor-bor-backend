@@ -11,6 +11,11 @@ export interface IRenameCredential {
   username: string;
 }
 
+export interface IRequestingFriend {
+  _id: ObjectId;
+  username: string;
+}
+
 export interface IUser {
   _id: ObjectId;
   username: string;
