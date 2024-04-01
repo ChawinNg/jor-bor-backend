@@ -4,7 +4,9 @@ import { Guard } from "../utils/error";
 import {
   getRequestingFriendsRepo,
   requestFriendRepo,
+  updateSocialStatusRepo,
 } from "../repository/social";
+import { ifError } from "assert";
 
 export async function requestFriend(req: Request, res: Response) {
   let _idUser = ObjectId.createFromHexString(res.locals.userId);
@@ -45,5 +47,37 @@ export async function getRequestingFriends(req: Request, res: Response) {
   if (queryErr !== undefined)
     return res.status(500).send({ message: queryErr.message });
 
-  return res.status(200).send(friends);
+  return res
+    .status(200)
+    .send(friends.map((val) => ({ id: val._id, username: val.username })));
+}
+
+export async function acceptFriend(req: Request, res: Response) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+
+  let { error: _idErr, value: _idFriend } = Guard<ObjectId>(() => {
+    return ObjectId.createFromHexString(req.params.userId);
+  });
+  if (_idErr !== undefined)
+    return res.status(400).send({ message: "invalid user id" });
+
+  let { error: userQueryErr } = await updateSocialStatusRepo(
+    _id,
+    _idFriend,
+    "REQUEST",
+    "ACCEPTED"
+  );
+  if (userQueryErr !== undefined)
+    return res.status(500).send({ message: userQueryErr.message });
+
+  let { error: friendQueryErr } = await updateSocialStatusRepo(
+    _idFriend,
+    _id,
+    "PENDING",
+    "ACCEPTED"
+  );
+  if (friendQueryErr !== undefined)
+    return res.status(500).send({ message: friendQueryErr.message });
+
+  return res.status(200).send({ message: "success" });
 }

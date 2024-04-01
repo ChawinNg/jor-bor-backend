@@ -62,3 +62,27 @@ export async function getRequestingFriendsRepo(
 
   return PromiseGuard(getAllRequestingFriendsQuery);
 }
+
+export async function updateSocialStatusRepo(
+  _id: ObjectId,
+  friendId: ObjectId,
+  from: SocialStatus,
+  to: SocialStatus
+): Promise<IReturn<IUser | null>> {
+  let updateQuery = MongoDB.db()
+    .collection<IUser>("users")
+    .findOneAndUpdate(
+      {
+        _id,
+        "friends.user_id": friendId,
+        "friends.status": from,
+      },
+      {
+        $set: {
+          "friends.$.status": to,
+        },
+      }
+    );
+
+  return PromiseGuard(updateQuery);
+}

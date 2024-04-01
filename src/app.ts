@@ -12,7 +12,11 @@ import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import { withAuth } from "./middlewares/auth";
 import { getAllUsers } from "./controllers/user";
-import { getRequestingFriends, requestFriend } from "./controllers/social";
+import {
+  acceptFriend,
+  getRequestingFriends,
+  requestFriend,
+} from "./controllers/social";
 
 async function main() {
   const app: Express = express();
@@ -44,7 +48,8 @@ async function main() {
   api.patch("/user", withAuth(rename));
   api.get("/users", getAllUsers);
 
-  api.post("/social/:userId", withAuth(requestFriend));
+  api.post("/social/add/:userId", withAuth(requestFriend));
+  api.post("/social/accept/:userId", withAuth(acceptFriend));
   api.get("/social/requests", withAuth(getRequestingFriends));
 
   app.use("/api", api);
