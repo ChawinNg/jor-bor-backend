@@ -63,9 +63,21 @@ export async function joinLobby(req: Request, res: Response) {
   });
   if (lobbyIdErr) return res.status(400).send({ message: "invalid lobby id" });
 
+  let lobbyQuery = MongoDB.db()
+    .collection<ILobby>("lobbies")
+    .findOne({ _id: lobbyId });
+  let { error: lobbyQueryErr, value: lobby } = await PromiseGuard(lobbyQuery);
+  if (lobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (lobbyQueryErr !== undefined)
+    return res.status(500).send({ message: lobbyQueryErr.message });
+
+  if (lobby.players.length >= lobby.max_player)
+    return res.status(400).send({ message: "lobby is full" });
+
   let query = MongoDB.db()
     .collection<ILobby>("lobbies")
-    .findOneAndUpdate(
+    .updateOne(
       { _id: lobbyId },
       {
         $addToSet: {
