@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { MongoDB } from "../database/mongo";
 import { ILobby } from "../models/lobby";
-import { PromiseGuard } from "../utils/error";
+import { Guard, PromiseGuard } from "../utils/error";
 import { ObjectId } from "mongodb";
 
 export async function createLobby(req: Request, res: Response) {
@@ -31,10 +31,8 @@ export async function createLobby(req: Request, res: Response) {
   if (queryErr !== undefined)
     return res.status(500).send({ message: queryErr.message });
 
-  console.log(newLobby);
-
   return res
-    .status(200)
+    .status(201)
     .send({ message: "success", lobby_id: newLobby.insertedId });
 }
 
@@ -55,4 +53,34 @@ export async function getAllLobbies(req: Request, res: Response) {
         players: lobby.players,
       }))
   );
+}
+
+export async function joinLobby(req: Request, res: Response) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+
+  let { error: lobbyIdErr, value: lobbyId } = Guard<ObjectId>(() => {
+    return ObjectId.createFromHexString(req.params.lobbyId);
+  });
+  if (lobbyIdErr) return res.status(400).send({ message: "invalid lobby id" });
+
+  let query = MongoDB.db()
+    .collection<ILobby>("lobbies")
+    .findOneAndUpdate(
+      { _id: lobbyId },
+      {
+        $addToSet: {
+          players: {
+            _id,
+            is_ready: false,
+          },
+        },
+      }
+    );
+  let { error: queryErr, value: updatedLobby } = await PromiseGuard(query);
+  if (updatedLobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (queryErr !== undefined)
+    return res.status(500).send({ message: queryErr.message });
+
+  return res.status(200).send({ message: "success" });
 }
