@@ -84,3 +84,32 @@ export async function joinLobby(req: Request, res: Response) {
 
   return res.status(200).send({ message: "success" });
 }
+
+export async function leaveLobby(req: Request, res: Response) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+
+  let { error: lobbyIdErr, value: lobbyId } = Guard<ObjectId>(() => {
+    return ObjectId.createFromHexString(req.params.lobbyId);
+  });
+  if (lobbyIdErr) return res.status(400).send({ message: "invalid lobby id" });
+
+  let query = MongoDB.db()
+    .collection<ILobby>("lobbies")
+    .findOneAndUpdate(
+      { _id: lobbyId },
+      {
+        $pull: {
+          players: {
+            _id,
+          },
+        },
+      }
+    );
+  let { error: queryErr, value: updatedLobby } = await PromiseGuard(query);
+  if (updatedLobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (queryErr !== undefined)
+    return res.status(500).send({ message: queryErr.message });
+
+  return res.status(200).send({ message: "success" });
+}

@@ -18,7 +18,12 @@ import {
   getRequestingFriends,
   requestFriend,
 } from "./controllers/social";
-import { createLobby, getAllLobbies, joinLobby } from "./controllers/lobby";
+import {
+  createLobby,
+  getAllLobbies,
+  joinLobby,
+  leaveLobby,
+} from "./controllers/lobby";
 
 async function main() {
   const app: Express = express();
@@ -58,6 +63,7 @@ async function main() {
   api.get("/lobbies", getAllLobbies);
   api.post("/lobby/create", withAuth(createLobby));
   api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
+  api.post("/lobby/leave/:lobbyId", withAuth(leaveLobby));
 
   app.use("/api", api);
 
