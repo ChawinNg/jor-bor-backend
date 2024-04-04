@@ -26,7 +26,7 @@ export async function createLobby(req: Request, res: Response) {
     ],
   };
 
-  let query = MongoDB.db().collection("lobbies").insertOne(lobby);
+  let query = MongoDB.db().collection<ILobby>("lobbies").insertOne(lobby);
   let { error: queryErr, value: newLobby } = await PromiseGuard(query);
   if (queryErr !== undefined)
     return res.status(500).send({ message: queryErr.message });
@@ -36,4 +36,23 @@ export async function createLobby(req: Request, res: Response) {
   return res
     .status(200)
     .send({ message: "success", lobby_id: newLobby.insertedId });
+}
+
+export async function getAllLobbies(req: Request, res: Response) {
+  let query = MongoDB.db().collection<ILobby>("lobbies").find().toArray();
+  let { error: queryErr, value: lobbies } = await PromiseGuard(query);
+  if (queryErr !== undefined)
+    return res.status(500).send({ message: queryErr.message });
+
+  return res.status(200).send(
+    lobbies
+      .filter((lobby) => lobby.is_public)
+      .map((lobby) => ({
+        id: lobby._id,
+        owner: lobby.lobby_owner,
+        name: lobby.name,
+        max_player: lobby.max_player,
+        players: lobby.players,
+      }))
+  );
 }

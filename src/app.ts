@@ -18,7 +18,7 @@ import {
   getRequestingFriends,
   requestFriend,
 } from "./controllers/social";
-import { createLobby } from "./controllers/lobby";
+import { createLobby, getAllLobbies } from "./controllers/lobby";
 
 async function main() {
   const app: Express = express();
@@ -56,6 +56,7 @@ async function main() {
   api.get("/social/friends", withAuth(getAllFriends));
 
   api.post("/lobby/create", withAuth(createLobby));
+  api.get("/lobbies", getAllLobbies);
 
   app.use("/api", api);
 
