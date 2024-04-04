@@ -18,6 +18,7 @@ import {
   getRequestingFriends,
   requestFriend,
 } from "./controllers/social";
+import { createLobby } from "./controllers/lobby";
 
 async function main() {
   const app: Express = express();
@@ -53,6 +54,8 @@ async function main() {
   api.post("/social/accept/:userId", withAuth(acceptFriend));
   api.get("/social/requests", withAuth(getRequestingFriends));
   api.get("/social/friends", withAuth(getAllFriends));
+
+  api.post("/lobby/create", withAuth(createLobby));
 
   app.use("/api", api);
 
