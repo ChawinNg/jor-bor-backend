@@ -20,6 +20,7 @@ import {
 } from "./controllers/social";
 import {
   createLobby,
+  deleteLobby,
   getAllLobbies,
   joinLobby,
   leaveLobby,
@@ -64,6 +65,7 @@ async function main() {
   api.post("/lobby/create", withAuth(createLobby));
   api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
   api.post("/lobby/leave/:lobbyId", withAuth(leaveLobby));
+  api.delete("/lobby/delete/:lobbyId", withAuth(deleteLobby));
 
   app.use("/api", api);
 
