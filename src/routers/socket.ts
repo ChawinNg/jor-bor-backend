@@ -3,7 +3,7 @@ import { parseCookie } from "../utils/cookie";
 
 let conn: { [key: string]: Socket } = {};
 
-export function userSocket(userId: string) {
+export function userSocket(userId: string): Socket | undefined {
   return conn[userId];
 }
 
@@ -16,8 +16,6 @@ export function onSocketConnect(socket: Socket) {
 
   console.log("Connection", socket.id);
   conn[cookies["session"]] = socket;
-
-  socket.emit("hello", "world");
 
   socket.conn.on("session", (arg) => {
     console.log(arg);

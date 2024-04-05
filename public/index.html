@@ -30,16 +30,12 @@
 
   var socket = io("ws://localhost:8000");
 
-  socket.on("hello", (arg) => {
-    console.log(arg);
-  });
-
   socket.on("disconnect", () => {
     console.log("Disconnect")
   })
 
   socket.on("social", (arg) => {
-
+    console.log(arg, "has added you")
   })
 </script>
 </html>

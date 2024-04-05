@@ -6,6 +6,8 @@ import {
   requestFriendRepo,
   updateSocialStatusRepo,
 } from "../repository/social";
+import { userSocket } from "../routers/socket";
+import { SocialEvent } from "../models/social";
 
 export async function requestFriend(req: Request, res: Response) {
   let _idUser = ObjectId.createFromHexString(res.locals.userId);
@@ -42,6 +44,15 @@ export async function requestFriend(req: Request, res: Response) {
       .send({ message: "user not found or they have already added you" });
   else if (userErr !== undefined)
     return res.status(500).send({ message: userErr.message });
+
+  let event: SocialEvent = {
+    type: "ADD",
+    payload: {
+      from: _idUser.toString(),
+    },
+  };
+
+  userSocket(_idFriend.toString())?.emit("social", JSON.stringify(event));
 
   return res.status(200).send({ message: "success" });
 }
