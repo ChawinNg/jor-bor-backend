@@ -8,7 +8,7 @@ import { ObjectId } from "mongodb";
 export async function login(req: Request, res: Response) {
   let body = req.body as IUserCredential;
   if (body.username === undefined || body.password === undefined)
-    return res.status(200).send({ message: "invalid body" });
+    return res.status(400).send({ message: "invalid body" });
 
   let userQuery = MongoDB.db()
     .collection<IUser>("users")
