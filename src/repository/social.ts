@@ -87,3 +87,23 @@ export async function updateSocialStatusRepo(
 
   return PromiseGuard(updateQuery);
 }
+
+export async function deleteSocialStatusRepo(
+  _id: ObjectId,
+  friendId: ObjectId
+): Promise<IReturn<IUser | null>> {
+  let deleteQuery = MongoDB.db()
+    .collection<IUser>("users")
+    .findOneAndUpdate(
+      { _id },
+      {
+        $pull: {
+          friends: {
+            user_id: friendId,
+          },
+        },
+      }
+    );
+
+  return PromiseGuard(deleteQuery);
+}

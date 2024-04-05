@@ -7,6 +7,7 @@ import {
   acceptFriend,
   getAllFriends,
   getRequestingFriends,
+  rejectFriend,
   requestFriend,
 } from "../controllers/social";
 import {
@@ -25,6 +26,7 @@ api.get("/users", getAllUsers);
 
 api.post("/social/add/:userId", withAuth(requestFriend));
 api.post("/social/accept/:userId", withAuth(acceptFriend));
+api.post("/social/reject/:userId", withAuth(rejectFriend));
 api.get("/social/requests", withAuth(getRequestingFriends));
 api.get("/social/friends", withAuth(getAllFriends));
 
