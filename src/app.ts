@@ -6,31 +6,13 @@ import express, { Express } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import http from "http";
-import { login, register, rename } from "./controllers/auth";
 import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
-import { Server, Socket } from "socket.io";
-import { withAuth } from "./middlewares/auth";
-import { getAllUsers } from "./controllers/user";
-import {
-  acceptFriend,
-  getAllFriends,
-  getRequestingFriends,
-  requestFriend,
-} from "./controllers/social";
-import {
-  createLobby,
-  deleteLobby,
-  getAllLobbies,
-  joinLobby,
-  leaveLobby,
-} from "./controllers/lobby";
+import { Server } from "socket.io";
+import api from "./routers/http";
+import { onSocketConnect } from "./routers/socket";
 
 async function main() {
-  const app: Express = express();
-  const httpServer = http.createServer(app);
-  const io = new Server(httpServer);
-
   const PORT = process.env.PORT || 3000;
   const MONGO_URI = process.env.MONGO_URI || "";
 
@@ -41,33 +23,16 @@ async function main() {
     process.exit();
   }
 
-  io.on("connection", (socket: Socket) => {
-    socket.emit("hello", "world");
-  });
-
+  const app: Express = express();
+  const httpServer = http.createServer(app);
   app.use(cors());
   app.use(cookieParser());
   app.use(express.json());
   app.use("/", express.static(path.join(__dirname, "../public/")));
-
-  const api = express.Router();
-  api.post("/auth/login", login);
-  api.post("/auth/register", register);
-  api.patch("/user", withAuth(rename));
-  api.get("/users", getAllUsers);
-
-  api.post("/social/add/:userId", withAuth(requestFriend));
-  api.post("/social/accept/:userId", withAuth(acceptFriend));
-  api.get("/social/requests", withAuth(getRequestingFriends));
-  api.get("/social/friends", withAuth(getAllFriends));
-
-  api.get("/lobbies", getAllLobbies);
-  api.post("/lobby/create", withAuth(createLobby));
-  api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
-  api.post("/lobby/leave/:lobbyId", withAuth(leaveLobby));
-  api.delete("/lobby/delete/:lobbyId", withAuth(deleteLobby));
-
   app.use("/api", api);
+
+  const io = new Server(httpServer);
+  io.on("connection", onSocketConnect);
 
   httpServer.listen(PORT, () => {
     console.log(`[server] Server is running at http://localhost:${PORT}`);
