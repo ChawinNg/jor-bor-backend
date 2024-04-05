@@ -1,13 +1,45 @@
 <!DOCTYPE html>
 <body>
   <h1>Just for testing only</h1>
+  <input type="text" id="user" />
+  <input type="pass" id="pass" />
+  <input type="button" onclick="login()" value="login" />
 </body>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
+  async function login() {
+    let username = document.getElementById("user").value;
+    let password = document.getElementById("pass").value;
+
+    try {
+      let response = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,        
+        })
+      })
+      let json = await response.json();
+      console.log(json);
+
+    } catch (err) { console.log(err) }
+  }
+
   var socket = io("ws://localhost:8000");
 
   socket.on("hello", (arg) => {
     console.log(arg);
   });
+
+  socket.on("disconnect", () => {
+    console.log("Disconnect")
+  })
+
+  socket.on("social", (arg) => {
+
+  })
 </script>
 </html>

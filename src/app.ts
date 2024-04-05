@@ -31,7 +31,7 @@ async function main() {
   app.use("/", express.static(path.join(__dirname, "../public/")));
   app.use("/api", api);
 
-  const io = new Server(httpServer);
+  const io = new Server(httpServer, { cookie: true });
   io.on("connection", onSocketConnect);
 
   httpServer.listen(PORT, () => {
