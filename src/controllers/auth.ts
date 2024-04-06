@@ -29,6 +29,7 @@ export async function login(req: Request, res: Response) {
 
   res.cookie("session", user._id.toString(), {
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    httpOnly: true,
   });
 
   return res.status(200).send({ message: "success" });
