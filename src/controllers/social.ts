@@ -7,8 +7,8 @@ import {
   requestFriendRepo,
   updateSocialStatusRepo,
 } from "../repository/social";
-import { userSocket } from "../routers/socket";
 import { SocialEvent } from "../models/social";
+import { sendMessage } from "../routers/socket";
 
 export async function requestFriend(req: Request, res: Response) {
   let _idUser = ObjectId.createFromHexString(res.locals.userId);
@@ -53,7 +53,7 @@ export async function requestFriend(req: Request, res: Response) {
     },
   };
 
-  userSocket(_idFriend.toString())?.emit("social", JSON.stringify(event));
+  sendMessage(_idFriend, "social", JSON.stringify(event));
 
   return res.status(200).send({ message: "success" });
 }
