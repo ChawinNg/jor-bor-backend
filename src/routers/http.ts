@@ -20,6 +20,9 @@ import {
   ready,
 } from "../controllers/lobby";
 import { withParams } from "../middlewares/params";
+import path from "path";
+import { readFile, readFileSync } from "fs";
+import { routeHTML } from "../controllers/route";
 
 const api = express.Router();
 api.post("/auth/login", login);
@@ -41,5 +44,12 @@ api.post("/lobby/leave", withAuth(leaveLobby));
 api.delete("/lobby/delete", withAuth(deleteLobby));
 api.post("/lobby/ready", withAuth(withParams(ready, true)));
 api.post("/lobby/unready", withAuth(withParams(ready, false)));
+
+const routes = api.stack.map((r: any) => ({
+  path: `/api${r.route.path}`,
+  method: String(r.route.stack[0].method).toUpperCase(),
+}));
+
+api.get("/routes", withParams(routeHTML, routes));
 
 export default api;
