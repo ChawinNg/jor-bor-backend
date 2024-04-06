@@ -14,6 +14,7 @@ import {
   createLobby,
   deleteLobby,
   getAllLobbies,
+  getLobbyById,
   joinLobby,
   leaveLobby,
 } from "../controllers/lobby";
@@ -31,9 +32,10 @@ api.get("/social/requests", withAuth(getRequestingFriends));
 api.get("/social/friends", withAuth(getAllFriends));
 
 api.get("/lobbies", getAllLobbies);
+api.get("/lobby/:lobbyId", getLobbyById);
 api.post("/lobby/create", withAuth(createLobby));
 api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
-api.post("/lobby/leave/:lobbyId", withAuth(leaveLobby));
-api.delete("/lobby/delete/:lobbyId", withAuth(deleteLobby));
+api.post("/lobby/leave", withAuth(leaveLobby));
+api.delete("/lobby/delete", withAuth(deleteLobby));
 
 export default api;

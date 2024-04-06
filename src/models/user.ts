@@ -21,6 +21,7 @@ export interface IUser {
   username: string;
   password: string;
   score: number;
+  lobby_id: ObjectId;
   friends: {
     user_id: ObjectId;
     status: SocialStatus;
