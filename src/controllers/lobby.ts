@@ -136,7 +136,7 @@ export async function deleteLobby(req: Request, res: Response) {
 
   let query = MongoDB.db()
     .collection<ILobby>("lobbies")
-    .findOneAndDelete({ _id: lobbyId });
+    .findOneAndDelete({ _id: lobbyId, lobby_owner: _id });
   let { error: queryErr, value: deletedLobby } = await PromiseGuard(query);
   if (deletedLobby === null)
     return res.status(404).send({ message: "lobby not found" });
