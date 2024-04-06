@@ -91,3 +91,22 @@ export async function leaveLobbyRepo(userId: ObjectId, lobbyId: ObjectId) {
 
   return PromiseGuard(query);
 }
+
+export async function setReadyStatusRepo(
+  userId: ObjectId,
+  lobbyId: ObjectId,
+  isReady: boolean
+) {
+  let query = MongoDB.db()
+    .collection<ILobby>("lobbies")
+    .findOneAndUpdate(
+      { _id: lobbyId, "players._id": userId },
+      {
+        $set: {
+          "players.$.is_ready": isReady,
+        },
+      }
+    );
+
+  return PromiseGuard(query);
+}

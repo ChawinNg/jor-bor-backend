@@ -9,9 +9,11 @@ import {
   getLobbyByIdRepo,
   joinLobbyRepo,
   leaveLobbyRepo,
+  setReadyStatusRepo,
   setUserLobbyRepo,
   unsetUserLobbyRepo,
 } from "../repository/lobby";
+import { getUserByIdRepo } from "../repository/user";
 
 export async function getAllLobbies(req: Request, res: Response) {
   let { error: queryErr, value: lobbies } = await getAllLobbiesRepo();
@@ -146,6 +148,29 @@ export async function deleteLobby(req: Request, res: Response) {
     return res.status(404).send({ message: "lobby not found" });
   else if (queryErr !== undefined)
     return res.status(500).send({ message: queryErr.message });
+
+  return res.status(200).send({ message: "success" });
+}
+
+export async function ready(req: Request, res: Response, params: boolean) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+
+  let { error: userQueryErr, value: user } = await getUserByIdRepo(_id);
+  if (userQueryErr !== undefined)
+    return res.status(500).send({ message: userQueryErr.message });
+
+  if (user!.lobby_id === undefined)
+    return res.status(400).send({ message: "user does not in lobby" });
+
+  let { error: readyQueryErr, value: lobby } = await setReadyStatusRepo(
+    _id,
+    user!.lobby_id,
+    params
+  );
+  if (lobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (readyQueryErr !== undefined)
+    return res.status(500).send({ message: readyQueryErr.message });
 
   return res.status(200).send({ message: "success" });
 }

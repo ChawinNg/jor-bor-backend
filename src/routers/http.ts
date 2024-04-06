@@ -17,7 +17,9 @@ import {
   getLobbyById,
   joinLobby,
   leaveLobby,
+  ready,
 } from "../controllers/lobby";
+import { withParams } from "../middlewares/params";
 
 const api = express.Router();
 api.post("/auth/login", login);
@@ -37,5 +39,7 @@ api.post("/lobby/create", withAuth(createLobby));
 api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
 api.post("/lobby/leave", withAuth(leaveLobby));
 api.delete("/lobby/delete", withAuth(deleteLobby));
+api.post("/lobby/ready", withAuth(withParams(ready, true)));
+api.post("/lobby/unready", withAuth(withParams(ready, false)));
 
 export default api;
