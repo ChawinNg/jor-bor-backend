@@ -1,7 +1,7 @@
 import express from "express";
 
 import { login, register, rename } from "../controllers/auth";
-import { getAllUsers } from "../controllers/user";
+import { getAllUsers, getMe } from "../controllers/user";
 import { withAuth } from "../middlewares/auth";
 import {
   acceptFriend,
@@ -29,6 +29,7 @@ const api = express.Router();
 api.post("/auth/login", login);
 api.post("/auth/register", register);
 api.patch("/user", withAuth(rename));
+api.get("/users/me", getMe);
 api.get("/users", getAllUsers);
 
 api.post("/social/add/:userId", withAuth(requestFriend));

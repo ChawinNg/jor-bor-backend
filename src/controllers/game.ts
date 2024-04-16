@@ -1,3 +1,5 @@
+import { Server, Socket } from 'socket.io';
+import http from 'http';
 import { ObjectId } from "mongodb";
 import { IGame } from "../models/game";
 import { Role, IPlayer } from "../models/player";
@@ -10,6 +12,7 @@ interface IUser {
 }
 
 export class WerewolfGame {
+    io: Server;
     players: IPlayer[];
     villagers: IPlayer[];
     werewolves: IPlayer[];
@@ -19,8 +22,10 @@ export class WerewolfGame {
     villager_side_left: number; // including seer
     seer_left: number;
     werewolf_side_left: number;
+    isNight = false;
 
-    constructor(users: IUser[]) {
+    constructor(users: IUser[], server: http.Server) {
+        this.io = new Server(server);
         this.totalPlayers = users.length;
         this.players = [];
         this.alive_players = [];
@@ -186,9 +191,10 @@ export async function getGame(req: Request, res: Response) {
     ]
     console.log(users.length)
 
-    const game = new WerewolfGame(users);
+
+    // const game = new WerewolfGame(users, server);
 
     return res.status(200).send({
-        message: game.players
+        // message: game.players
     })
 }
