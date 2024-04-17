@@ -43,7 +43,20 @@ async function main() {
       credentials: true,
     },
   });
-  io.on("connection", onSocketConnect);
+  // io.on("connection", onSocketConnect);
+  io.on("connection", (socket) => {
+    console.log(`Socket ${socket.id} connected.`);
+
+    // Listen for incoming messages and broadcast to all clients
+    socket.on("message", (message) => {
+      io.emit("message", message);
+    });
+
+    // Clean up the socket on disconnect
+    socket.on("disconnect", () => {
+      console.log(`Socket ${socket.id} disconnected.`);
+    });
+  });
 
   httpServer.listen(PORT, () => {
     console.log(`[server] Server is running at http://localhost:${PORT}`);
