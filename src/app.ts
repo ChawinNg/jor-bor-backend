@@ -48,8 +48,8 @@ async function main() {
     console.log(`Socket ${socket.id} connected.`);
 
     // Listen for incoming messages and broadcast to all clients
-    socket.on("message", (message) => {
-      io.emit("message", message);
+    socket.on("private message", (message) => {
+      io.emit("private message", message);
     });
 
     // Clean up the socket on disconnect
