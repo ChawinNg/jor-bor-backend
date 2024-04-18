@@ -47,7 +47,7 @@ async function main() {
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
 
-    // Listen for incoming messages and broadcast to all clients
+    //Private Message
     socket.on("private message", (message) => {
       io.emit("private message", message);
     });
