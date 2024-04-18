@@ -52,6 +52,20 @@ async function main() {
       io.emit("private message", message);
     });
 
+    //Lobby message
+    socket.on("lobby message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("lobby message", message);
+      } else {
+        io.emit("lobby message", message);
+      }
+    });
+
+    //Join room
+    socket.on("joinLobby", (lobby_id) => {
+      console.log("Joining lobby", lobby_id);
+      socket.join(lobby_id);
+    });
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
