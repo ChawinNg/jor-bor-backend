@@ -82,6 +82,21 @@ async function main() {
       socket.join(lobby_id);
     });
 
+    //Ghost message
+    socket.on("ghost message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("ghost message", message);
+      } else {
+        io.emit("ghost message", message);
+      }
+    });
+
+    //Join ghost chat
+    socket.on("joinGhost", (lobby_id) => {
+      console.log("Joining Ghost", lobby_id);
+      socket.join(lobby_id);
+    });
+
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
