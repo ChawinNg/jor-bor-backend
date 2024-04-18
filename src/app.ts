@@ -61,11 +61,27 @@ async function main() {
       }
     });
 
-    //Join room
+    //Join lobby
     socket.on("joinLobby", (lobby_id) => {
       console.log("Joining lobby", lobby_id);
       socket.join(lobby_id);
     });
+
+    //Game message
+    socket.on("game message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("game message", message);
+      } else {
+        io.emit("game message", message);
+      }
+    });
+
+    //Join game
+    socket.on("joinGame", (lobby_id) => {
+      console.log("Joining Game", lobby_id);
+      socket.join(lobby_id);
+    });
+
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
