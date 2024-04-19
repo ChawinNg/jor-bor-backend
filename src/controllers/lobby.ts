@@ -6,6 +6,7 @@ import {
   createLobbyRepo,
   deleteLobbyRepo,
   getAllLobbiesRepo,
+  getLobbyByCodeRepo,
   getLobbyByIdRepo,
   joinLobbyRepo,
   leaveLobbyRepo,
@@ -81,6 +82,31 @@ export async function createLobby(req: Request, res: Response) {
   return res
     .status(201)
     .send({ message: "success", lobby_id: newLobby.insertedId });
+}
+
+export async function joinLobbyByCode(req: Request, res: Response) {
+  let _id = ObjectId.createFromHexString(res.locals.userId);
+  let { error: codedLobbyErr, value: codedLobby} = await getLobbyByCodeRepo(req.body.lobby_code);
+  if (codedLobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (codedLobbyErr !== undefined)
+    return res.status(500).send({ message: codedLobbyErr.message });
+  if (codedLobby.players.length >= codedLobby.max_player)
+    return res.status(400).send({ message: "lobby is full" });  
+  let { error: queryErr, value: updatedLobby } = await joinLobbyRepo(
+    _id,
+    codedLobby._id
+  );
+  if (updatedLobby === null)
+    return res.status(404).send({ message: "lobby not found" });
+  else if (queryErr !== undefined)
+    return res.status(500).send({ message: queryErr.message });
+
+  let { error: updateUserQueryErr } = await setUserLobbyRepo(_id, codedLobby._id);
+  if (updateUserQueryErr !== undefined)
+    return res.status(500).send({ message: updateUserQueryErr.message });
+
+  return res.status(200).send({ message: "success", lobbyId: codedLobby._id });
 }
 
 export async function joinLobby(req: Request, res: Response) {

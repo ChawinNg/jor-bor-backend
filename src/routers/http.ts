@@ -16,6 +16,7 @@ import {
   getAllLobbies,
   getLobbyById,
   joinLobby,
+  joinLobbyByCode,
   leaveLobby,
   ready,
 } from "../controllers/lobby";
@@ -43,6 +44,7 @@ api.get("/lobbies", getAllLobbies);
 api.get("/lobby/:lobbyId", getLobbyById);
 api.post("/lobby/create", withAuth(createLobby));
 api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
+api.post("/lobby/codedJoin", withAuth(joinLobbyByCode));
 api.post("/lobby/leave", withAuth(leaveLobby));
 api.delete("/lobby/delete", withAuth(deleteLobby));
 api.post("/lobby/ready", withAuth(withParams(ready, true)));

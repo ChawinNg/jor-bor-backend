@@ -19,6 +19,14 @@ export async function getLobbyByIdRepo(lobbyId: ObjectId) {
   return PromiseGuard(query);
 }
 
+export async function getLobbyByCodeRepo(lobby_code: string) {
+  let query = MongoDB.db()
+    .collection<ILobby>("lobbies")
+    .findOne({ lobby_code: lobby_code });
+
+  return PromiseGuard(query);
+}
+
 export async function createLobbyRepo(ownerId: ObjectId, lobbyInfo: ILobby) {
   const owner = await getUserByIdRepo(ownerId);
   console.log(owner)
