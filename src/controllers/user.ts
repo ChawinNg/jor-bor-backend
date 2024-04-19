@@ -3,7 +3,6 @@ import { MongoDB } from "../database/mongo";
 import { IUser } from "../models/user";
 import { Guard, PromiseGuard } from "../utils/error";
 import { ObjectId } from "mongodb";
-import { getUserByIdRepo } from "../repository/user";
 
 export async function getAllUsers(req: Request, res: Response) {
   let usersQuery = MongoDB.db().collection<IUser>("users").find().toArray();
@@ -23,19 +22,16 @@ export async function getAllUsers(req: Request, res: Response) {
 }
 
 export async function getMe(req: Request, res: Response) {
-  console.log(req.params)
-  let { error: userIdErr, value: userId } = Guard<ObjectId>(() => {
-    return ObjectId.createFromHexString(req.params.userId);
-  });
-  if (userIdErr) return res.status(400).send({ message: "invalid user id" });
+  let { error: idErr, value: _id } = Guard(() => ObjectId.createFromHexString(res.locals.userId));
+  if (idErr !== undefined)
+    return res.status(401).send({ message: "required login" });
 
-  let { error: queryErr, value: user } = await getUserByIdRepo(userId);
-  if (user === null)
+  let query = MongoDB.db().collection<IUser>("users").findOne({ _id })
+  let { error: userErr, value: user } = await PromiseGuard(query)
+  if (userErr !== undefined)
+    return res.status(500).send({ message: userErr.message });
+  else if (user === null)
     return res.status(404).send({ message: "user not found" });
-  else if (queryErr !== undefined)
-    return res.status(500).send({ message: queryErr.message });
 
-  return res.status(200).send({
-    user
-  });
-}
+  return res.status(200).send({ data: { _id: user._id, username: user.username } })
+};

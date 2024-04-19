@@ -76,6 +76,7 @@ export async function createLobby(req: Request, res: Response) {
   if (updateUserQueryErr !== undefined)
     return res.status(500).send({ message: updateUserQueryErr.message });
 
+
   return res
     .status(201)
     .send({ message: "success", lobby_id: newLobby.insertedId });

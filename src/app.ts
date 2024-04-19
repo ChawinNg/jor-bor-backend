@@ -49,7 +49,65 @@ async function main() {
       credentials: true,
     },
   });
-  io.on("connection", onSocketConnect);
+  // io.on("connection", onSocketConnect);
+  io.on("connection", (socket) => {
+    console.log(`Socket ${socket.id} connected.`);
+
+    // Listen for incoming messages and broadcast to all clients
+    socket.on("private message", (message) => {
+      io.emit("private message", message);
+    });
+
+    //Lobby message
+    socket.on("lobby message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("lobby message", message);
+      } else {
+        io.emit("lobby message", message);
+      }
+    });
+
+    //Join lobby
+    socket.on("joinLobby", (lobby_id) => {
+      console.log("Joining lobby", lobby_id);
+      socket.join(lobby_id);
+    });
+
+    //Game message
+    socket.on("game message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("game message", message);
+      } else {
+        io.emit("game message", message);
+      }
+    });
+
+    //Join game
+    socket.on("joinGame", (lobby_id) => {
+      console.log("Joining Game", lobby_id);
+      socket.join(lobby_id);
+    });
+
+    //Ghost message
+    socket.on("ghost message", (message, lobby_id) => {
+      if (lobby_id.length) {
+        io.to(lobby_id).emit("ghost message", message);
+      } else {
+        io.emit("ghost message", message);
+      }
+    });
+
+    //Join ghost chat
+    socket.on("joinGhost", (lobby_id) => {
+      console.log("Joining Ghost", lobby_id);
+      socket.join(lobby_id);
+    });
+
+    // Clean up the socket on disconnect
+    socket.on("disconnect", () => {
+      console.log(`Socket ${socket.id} disconnected.`);
+    });
+  });
 
   httpServer.listen(PORT, () => {
     console.log(`[server] Server is running at http://localhost:${PORT}`);

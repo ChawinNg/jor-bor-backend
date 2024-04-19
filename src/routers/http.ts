@@ -29,8 +29,9 @@ const api = express.Router();
 api.post("/auth/login", login);
 api.post("/auth/register", register);
 api.patch("/user", withAuth(rename));
-api.get("/users/me", getMe);
+api.get("/users/me", withAuth(getMe));
 api.get("/users", getAllUsers);
+api.get("/users/me", withAuth(getMe));
 
 api.post("/social/add/:userId", withAuth(requestFriend));
 api.post("/social/accept/:userId", withAuth(acceptFriend));
