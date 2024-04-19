@@ -50,11 +50,13 @@ async function main() {
     const users = [];
     for (let [id, socket] of io.of("/").sockets) {
       users.push({
-        userID: id,
+        socketID: id,
         username: socket.handshake.auth.username,
+        userId: socket.handshake.auth.user_id,
       });
     }
     socket.emit("users", users);
+    console.log(users);
 
     //Private Message
     socket.on("private message", (message) => {
