@@ -44,9 +44,9 @@ export function onSocketConnect(socket: Socket) {
   console.log("Connection:", socket.id);
   conn[cookies["session"]] = socket;
 
-  // socket.on("custom_event", (data: any) => {
-  //   console.log("Data: ", data)
-  // })
+  socket.on("custom_event", (data: any) => {
+    console.log("Data: ", data)
+  })
 
   socket.conn.on("custom_event", (data: any) => {
     console.log("Data: ", data);

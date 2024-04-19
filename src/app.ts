@@ -31,20 +31,23 @@ async function main() {
 
   const app: Express = express();
   const httpServer = http.createServer(app);
-  app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-  }))
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
   app.use(cookieParser());
   app.use(express.json());
   app.use("/", express.static(path.join(__dirname, "../public/")));
   app.use("/api", api);
 
-  const io = new Server(httpServer, { 
+  const io = new Server(httpServer, {
     cookie: true,
     cors: {
-      origin: 'http://localhost:3000',
-    } ,
+      origin: "http://localhost:3000",
+      credentials: true,
+    },
   });
   io.on("connection", onSocketConnect);
 
