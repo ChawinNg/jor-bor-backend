@@ -43,9 +43,18 @@ async function main() {
       credentials: true,
     },
   });
-  // io.on("connection", onSocketConnect);
+
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
+
+    const users = [];
+    for (let [id, socket] of io.of("/").sockets) {
+      users.push({
+        userID: id,
+        username: socket.handshake.auth.username,
+      });
+    }
+    socket.emit("users", users);
 
     //Private Message
     socket.on("private message", (message) => {
