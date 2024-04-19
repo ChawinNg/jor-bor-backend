@@ -60,6 +60,7 @@ export async function createLobby(req: Request, res: Response) {
   if (
     body.name === undefined ||
     body.is_public === undefined ||
+    (!body.is_public && body.lobby_code === undefined) || 
     body.max_player === undefined
   )
     return res.status(400).send({ message: "invalid fields" });

@@ -3,6 +3,8 @@ import { PromiseGuard } from "../utils/error";
 import { ILobby } from "../models/lobby";
 import { MongoDB } from "../database/mongo";
 import { IUser } from "../models/user";
+import { getUserByIdRepo } from "./user";
+import { error } from "console";
 
 export async function getAllLobbiesRepo() {
   let query = MongoDB.db().collection<ILobby>("lobbies").find().toArray();
@@ -18,17 +20,19 @@ export async function getLobbyByIdRepo(lobbyId: ObjectId) {
 }
 
 export async function createLobbyRepo(ownerId: ObjectId, lobbyInfo: ILobby) {
+  const owner = await getUserByIdRepo(ownerId);
+  console.log(owner)
   let lobby: ILobby = {
     ...lobbyInfo,
     _id: ownerId,
     players: [
       {
         _id: ownerId,
+        player_name: owner.value?.username,
         is_ready: false,
       },
     ],
   };
-
   let query = MongoDB.db().collection<ILobby>("lobbies").insertOne(lobby);
   return PromiseGuard(query);
 }
@@ -58,20 +62,22 @@ export async function unsetUserLobbyRepo(userId: ObjectId) {
 }
 
 export async function joinLobbyRepo(userId: ObjectId, lobbyId: ObjectId) {
+  const user = await getUserByIdRepo(userId);
+  console.log(user);
   let query = MongoDB.db()
-    .collection<ILobby>("lobbies")
-    .updateOne(
-      { _id: lobbyId },
-      {
-        $addToSet: {
-          players: {
-            _id: userId,
-            is_ready: false,
-          },
+  .collection<ILobby>("lobbies")
+  .updateOne(
+    { _id: lobbyId },
+    {
+      $addToSet: {
+        players: {
+          _id: userId,
+          player_name: user.value?.username,
+          is_ready: false,
         },
-      }
-    );
-
+      },
+    }
+  );
   return PromiseGuard(query);
 }
 
