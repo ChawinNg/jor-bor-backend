@@ -49,11 +49,22 @@ async function main() {
       credentials: true,
     },
   });
-  // io.on("connection", onSocketConnect);
+
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
 
-    // Listen for incoming messages and broadcast to all clients
+    const users = [];
+    for (let [id, socket] of io.of("/").sockets) {
+      users.push({
+        socketID: id,
+        username: socket.handshake.auth.username,
+        userId: socket.handshake.auth.user_id,
+      });
+    }
+    io.emit("users", users);
+    console.log(users);
+
+    //Private Message
     socket.on("private message", (message) => {
       io.emit("private message", message);
     });
@@ -106,6 +117,16 @@ async function main() {
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
+      const users = [];
+      for (let [id, socket] of io.of("/").sockets) {
+        users.push({
+          socketID: id,
+          username: socket.handshake.auth.username,
+          userId: socket.handshake.auth.user_id,
+        });
+      }
+      io.emit("users", users);
+      console.log(users);
     });
   });
 
