@@ -80,6 +80,7 @@ async function main() {
 
     //Join lobby
     socket.on("joinLobby", (lobby_id) => {
+      socket.data.isReady = false;
       console.log(`Socket ${socket.id} has joined the lobby ${lobby_id}`);
       socket.join(lobby_id);
 
@@ -88,13 +89,14 @@ async function main() {
       if (room) {
         console.log('room found')
         console.log(room)
-        
+
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
                 socketID: id,
                 username: socket.handshake.auth.username,
                 userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
               });
              }
         }
@@ -119,6 +121,57 @@ async function main() {
                 socketID: id,
                 username: socket.handshake.auth.username,
                 userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
+    });
+
+    socket.on("ready", (lobby_id) => {
+      socket.data.isReady = true;
+      console.log(`Lobby: ${lobby_id}, Socket ${socket.id} is ready`);
+
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
+    });
+
+    socket.on("notReady", (lobby_id) => {
+      socket.data.isReady = false;
+      console.log(`Lobby: ${lobby_id}, Socket ${socket.id} is not ready`);
+
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
               });
              }
         }
