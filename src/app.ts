@@ -199,10 +199,34 @@ async function main() {
       }
     });
 
+    // Start game
+    socket.on("hostStart", (lobby_id) => {
+      io.in(lobby_id).emit("startGame");
+    })
+
     //Join game
     socket.on("joinGame", (lobby_id) => {
       console.log("Joining Game", lobby_id);
       socket.join(lobby_id);
+      
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("inGameUsers", users);
     });
 
     //Ghost message
@@ -263,9 +287,9 @@ async function main() {
   // -------------------------------------
 }
 
-interface IUser {
-  _id: ObjectId;
-  name: string;
-}
+// interface IUser {
+//   _id: ObjectId;
+//   name: string;
+// }
 
 main();
