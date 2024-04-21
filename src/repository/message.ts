@@ -6,3 +6,17 @@ export async function saveMessageRepo(message: any) {
 
   return PromiseGuard(query);
 }
+
+export async function getMessagesRepo(user: any, to: any) {
+  let query = MongoDB.db()
+    .collection("messages")
+    .find({
+      $or: [
+        { user, to },
+        { user: to, to: user },
+      ],
+    })
+    .toArray();
+
+  return PromiseGuard(query);
+}

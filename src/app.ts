@@ -10,7 +10,7 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server } from "socket.io";
 import api from "./routers/http";
-import { saveMessageRepo } from "./repository/message";
+import { getMessagesRepo, saveMessageRepo } from "./repository/message";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -47,16 +47,27 @@ async function main() {
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
 
-    const users = [];
+    let users: { [key: string]: any } = {};
     for (let [id, socket] of io.of("/").sockets) {
-      users.push({
+      users[id] = {
         socketID: id,
         username: socket.handshake.auth.username,
         userId: socket.handshake.auth.user_id,
-      });
+      };
     }
-    io.emit("users", users);
-    console.log(users);
+    io.emit("users", Object.values(users));
+    console.log(Object.values(users));
+
+    // Init chat messages
+    socket.on("init chat", async ({ to }) => {
+      // console.log({ from: users[socket.id].username, ...credential });
+      let { value, error } = await getMessagesRepo(users[socket.id].username, to);
+      if (error !== undefined) return;
+
+      value.forEach((msg) => {
+        io.emit("private message", msg);
+      });
+    });
 
     //Private Message
     socket.on("private message", async (message) => {
@@ -115,16 +126,16 @@ async function main() {
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
-      const users = [];
+      users = {};
       for (let [id, socket] of io.of("/").sockets) {
-        users.push({
+        users[id] = {
           socketID: id,
           username: socket.handshake.auth.username,
           userId: socket.handshake.auth.user_id,
-        });
+        };
       }
-      io.emit("users", users);
-      console.log(users);
+      io.emit("users", Object.values(users));
+      console.log(Object.values(users));
     });
   });
 
