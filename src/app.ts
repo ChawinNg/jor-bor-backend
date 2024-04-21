@@ -10,6 +10,7 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server } from "socket.io";
 import api from "./routers/http";
+import { saveMessageRepo } from "./repository/message";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -58,12 +59,16 @@ async function main() {
     console.log(users);
 
     //Private Message
-    socket.on("private message", (message) => {
+    socket.on("private message", async (message) => {
+      let { error } = await saveMessageRepo(message);
+      if (error !== undefined) return;
+
       io.emit("private message", message);
     });
 
     //Lobby message
     socket.on("lobby message", (message, lobby_id) => {
+      console.log(lobby_id, message);
       if (lobby_id.length) {
         io.to(lobby_id).emit("lobby message", message);
       } else {
