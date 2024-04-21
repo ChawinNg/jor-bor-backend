@@ -11,6 +11,7 @@ import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import api from "./routers/http";
 import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
+import { WerewolfGame } from "./controllers/game";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -43,6 +44,8 @@ async function main() {
       credentials: true,
     },
   });
+
+  const werewolfGame = new WerewolfGame(io);
 
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
@@ -206,28 +209,12 @@ async function main() {
 
     //Join game
     socket.on("joinGame", (lobby_id) => {
-      console.log("Joining Game", lobby_id);
-      socket.join(lobby_id);
-      
-      const users: any[] = [];
-      let room = io.sockets.adapter.rooms.get(lobby_id);
-      if (room) {
-        console.log('room found')
-        console.log(room)
-
-        for (let [id, socket] of io.of("/").sockets) {
-          if (socket.rooms.has(lobby_id)) {
-            users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-              });
-             }
-        }
-      } else {console.log('not found')}
-      console.log(users);
-      io.in(lobby_id).emit("inGameUsers", users);
+      werewolfGame.handleJoinGame(socket, lobby_id);
     });
+
+    socket.on("start", (lobby_id) => {
+      werewolfGame.handleStart(socket, lobby_id);
+    })
 
     //Ghost message
     socket.on("ghost message", (message, lobby_id) => {
