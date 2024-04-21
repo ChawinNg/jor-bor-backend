@@ -10,7 +10,7 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server } from "socket.io";
 import api from "./routers/http";
-import { getMessagesRepo, saveMessageRepo } from "./repository/message";
+import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -60,7 +60,6 @@ async function main() {
 
     // Init chat messages
     socket.on("init chat", async ({ to }) => {
-      // console.log({ from: users[socket.id].username, ...credential });
       let { value, error } = await getMessagesRepo(users[socket.id].username, to);
       if (error !== undefined) return;
 
@@ -78,8 +77,10 @@ async function main() {
     });
 
     //Lobby message
-    socket.on("lobby message", (message, lobby_id) => {
-      console.log(lobby_id, message);
+    socket.on("lobby message", async (message, lobby_id) => {
+      let { error } = await saveMessageRepo({ ...message, lobby_id });
+      if (error !== undefined) return;
+
       if (lobby_id.length) {
         io.to(lobby_id).emit("lobby message", message);
       } else {
@@ -88,9 +89,16 @@ async function main() {
     });
 
     //Join lobby
-    socket.on("joinLobby", (lobby_id) => {
+    socket.on("joinLobby", async (lobby_id) => {
       console.log("Joining lobby", lobby_id);
       socket.join(lobby_id);
+
+      let { value, error } = await getLobbyMessagesRepo(lobby_id);
+      if (error !== undefined) return;
+
+      value.forEach((msg) => {
+        io.emit("lobby message", msg);
+      });
     });
 
     //Game message

@@ -20,3 +20,9 @@ export async function getMessagesRepo(user: any, to: any) {
 
   return PromiseGuard(query);
 }
+
+export async function getLobbyMessagesRepo(lobby_id: any) {
+  let query = MongoDB.db().collection("messages").find({ lobby_id }).toArray();
+
+  return PromiseGuard(query);
+}
