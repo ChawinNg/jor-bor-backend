@@ -16,6 +16,7 @@ import {
   getAllLobbies,
   getLobbyById,
   joinLobby,
+  joinLobbyByCode,
   leaveLobby,
   ready,
 } from "../controllers/lobby";
@@ -23,11 +24,13 @@ import { withParams } from "../middlewares/params";
 import path from "path";
 import { readFile, readFileSync } from "fs";
 import { routeHTML } from "../controllers/route";
+import { getGame } from "../controllers/game";
 
 const api = express.Router();
 api.post("/auth/login", login);
 api.post("/auth/register", register);
 api.patch("/user", withAuth(rename));
+api.get("/users/me", withAuth(getMe));
 api.get("/users", getAllUsers);
 api.get("/users/me", withAuth(getMe));
 
@@ -41,10 +44,13 @@ api.get("/lobbies", getAllLobbies);
 api.get("/lobby/:lobbyId", getLobbyById);
 api.post("/lobby/create", withAuth(createLobby));
 api.post("/lobby/join/:lobbyId", withAuth(joinLobby));
+api.post("/lobby/codedJoin", withAuth(joinLobbyByCode));
 api.post("/lobby/leave", withAuth(leaveLobby));
 api.delete("/lobby/delete", withAuth(deleteLobby));
 api.post("/lobby/ready", withAuth(withParams(ready, true)));
 api.post("/lobby/unready", withAuth(withParams(ready, false)));
+
+api.get("/game", getGame)
 
 const routes = api.stack.map((r: any) => ({
   path: `/api${r.route.path}`,

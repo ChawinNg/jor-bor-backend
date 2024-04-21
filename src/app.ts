@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 import http from "http";
 import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import api from "./routers/http";
 import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
 
@@ -89,16 +89,105 @@ async function main() {
     });
 
     //Join lobby
-    socket.on("joinLobby", async (lobby_id) => {
-      console.log("Joining lobby", lobby_id);
+    socket.on("joinLobby", (lobby_id) => {
+      socket.data.isReady = false;
+      console.log(`Socket ${socket.id} has joined the lobby ${lobby_id}`);
       socket.join(lobby_id);
 
-      let { value, error } = await getLobbyMessagesRepo(lobby_id);
-      if (error !== undefined) return;
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
 
-      value.forEach((msg) => {
-        socket.emit("lobby message", msg);
-      });
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
+    });
+
+    socket.on("leaveLobby", (lobby_id) => {
+      console.log(`Socket ${socket.id} has leaved the lobby ${lobby_id}`);
+      socket.leave(lobby_id);
+
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
+    });
+
+    socket.on("ready", (lobby_id) => {
+      socket.data.isReady = true;
+      console.log(`Lobby: ${lobby_id}, Socket ${socket.id} is ready`);
+
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
+    });
+
+    socket.on("notReady", (lobby_id) => {
+      socket.data.isReady = false;
+      console.log(`Lobby: ${lobby_id}, Socket ${socket.id} is not ready`);
+
+      const users: any[] = [];
+      let room = io.sockets.adapter.rooms.get(lobby_id);
+      if (room) {
+        console.log('room found')
+        console.log(room)
+
+        for (let [id, socket] of io.of("/").sockets) {
+          if (socket.rooms.has(lobby_id)) {
+            users.push({
+                socketID: id,
+                username: socket.handshake.auth.username,
+                userId: socket.handshake.auth.user_id,
+                ready: socket.data.isReady,
+              });
+             }
+        }
+      } else {console.log('not found')}
+      console.log(users);
+      io.in(lobby_id).emit("lobbyUsers", users);
     });
 
     //Game message
@@ -150,6 +239,33 @@ async function main() {
   httpServer.listen(PORT, () => {
     console.log(`[server] Server is running at http://localhost:${PORT}`);
   });
+
+  // add here ----------------------------
+
+  // const users: IUser[] = [
+  //   {_id: new ObjectId(), name: 'A'},
+  //   {_id: new ObjectId(), name: 'B'},
+  //   {_id: new ObjectId(), name: 'C'},
+  //   {_id: new ObjectId(), name: 'D'},
+  //   {_id: new ObjectId(), name: 'E'},
+  //   {_id: new ObjectId(), name: 'F'},
+  //   {_id: new ObjectId(), name: 'G'},
+  //   {_id: new ObjectId(), name: 'H'},
+  // ]
+  // console.log(users.length)
+
+  // const game = new WerewolfGame(users, httpServer);
+
+  // return res.status(200).send({
+  //   message: game.players
+  // })
+
+  // -------------------------------------
+}
+
+interface IUser {
+  _id: ObjectId;
+  name: string;
 }
 
 main();

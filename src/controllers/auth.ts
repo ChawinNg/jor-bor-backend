@@ -4,6 +4,7 @@ import { MongoDB } from "../database/mongo";
 import { PromiseGuard } from "../utils/error";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
+import { onSocketConnect } from "../routers/socket";
 
 export async function login(req: Request, res: Response) {
   let body = req.body as IUserCredential;
@@ -32,7 +33,9 @@ export async function login(req: Request, res: Response) {
     httpOnly: true,
   });
 
-  return res.status(200).send({ message: "success" });
+  onSocketConnect;
+
+  return res.status(200).send({ message: "success", });
 }
 
 export async function register(req: Request, res: Response) {
