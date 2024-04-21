@@ -64,7 +64,7 @@ async function main() {
       if (error !== undefined) return;
 
       value.forEach((msg) => {
-        io.emit("private message", msg);
+        socket.emit("private message", msg);
       });
     });
 
@@ -97,7 +97,7 @@ async function main() {
       if (error !== undefined) return;
 
       value.forEach((msg) => {
-        io.emit("lobby message", msg);
+        socket.emit("lobby message", msg);
       });
     });
 
