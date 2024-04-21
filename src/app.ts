@@ -10,7 +10,6 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server } from "socket.io";
 import api from "./routers/http";
-import { onSocketConnect } from "./routers/socket";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
