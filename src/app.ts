@@ -10,13 +10,7 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import api from "./routers/http";
-import { onSocketConnect } from "./routers/socket";
-import 'reflect-metadata'
-
-import { ObjectId } from "mongodb";
-import { WerewolfGame } from "./controllers/game";
-import { SocketControllers } from "socket-controllers";
-
+import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -53,24 +47,40 @@ async function main() {
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
 
-    const users = [];
+    let users: { [key: string]: any } = {};
     for (let [id, socket] of io.of("/").sockets) {
-      users.push({
+      users[id] = {
         socketID: id,
         username: socket.handshake.auth.username,
         userId: socket.handshake.auth.user_id,
-      });
+      };
     }
-    io.emit("users", users);
-    console.log(users);
+    io.emit("users", Object.values(users));
+    console.log(Object.values(users));
+
+    // Init chat messages
+    socket.on("init chat", async ({ to }) => {
+      let { value, error } = await getMessagesRepo(users[socket.id].username, to);
+      if (error !== undefined) return;
+
+      value.forEach((msg) => {
+        socket.emit("private message", msg);
+      });
+    });
 
     //Private Message
-    socket.on("private message", (message) => {
+    socket.on("private message", async (message) => {
+      let { error } = await saveMessageRepo(message);
+      if (error !== undefined) return;
+
       io.emit("private message", message);
     });
 
     //Lobby message
-    socket.on("lobby message", (message, lobby_id) => {
+    socket.on("lobby message", async (message, lobby_id) => {
+      let { error } = await saveMessageRepo({ ...message, lobby_id });
+      if (error !== undefined) return;
+
       if (lobby_id.length) {
         io.to(lobby_id).emit("lobby message", message);
       } else {
@@ -213,16 +223,16 @@ async function main() {
     // Clean up the socket on disconnect
     socket.on("disconnect", () => {
       console.log(`Socket ${socket.id} disconnected.`);
-      const users = [];
+      users = {};
       for (let [id, socket] of io.of("/").sockets) {
-        users.push({
+        users[id] = {
           socketID: id,
           username: socket.handshake.auth.username,
           userId: socket.handshake.auth.user_id,
-        });
+        };
       }
-      io.emit("users", users);
-      console.log(users);
+      io.emit("users", Object.values(users));
+      console.log(Object.values(users));
     });
   });
 
