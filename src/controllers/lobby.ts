@@ -52,6 +52,7 @@ export async function getLobbyById(req: Request, res: Response) {
     name: lobby.name,
     max_player: lobby.max_player,
     players: lobby.players,
+    lobby_code: lobby.lobby_code,
   });
 }
 
