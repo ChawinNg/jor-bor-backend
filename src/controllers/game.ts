@@ -91,7 +91,7 @@ export class WerewolfGame {
                 }
             }
         }
-        console.log(this.gameState.get(lobby_id));
+        console.log('Current room', this.gameState.get(lobby_id));
 
         this.io.in(lobby_id).emit("inGameUsers", users);
     }
@@ -149,6 +149,7 @@ export class WerewolfGame {
                             role: roles[i],
                             alive: true,
                         }
+                        this.io.to(id).emit('assignRole', info);
                         users.push(info);
 
                         switch (info.role) {
@@ -171,7 +172,7 @@ export class WerewolfGame {
                 }
             } else {console.log('not found')}
             console.log(users);
-            this.io.in(lobby_id).emit("assignRole", users);
+            // this.io.in(lobby_id).emit("assignRole", users);
         }
     }
 
