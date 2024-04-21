@@ -103,14 +103,14 @@ async function main() {
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else { console.log('not found') }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -128,14 +128,14 @@ async function main() {
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else { console.log('not found') }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -153,14 +153,14 @@ async function main() {
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else { console.log('not found') }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -178,14 +178,14 @@ async function main() {
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else { console.log('not found') }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -261,11 +261,6 @@ async function main() {
   // })
 
   // -------------------------------------
-}
-
-interface IUser {
-  _id: ObjectId;
-  name: string;
 }
 
 main();
