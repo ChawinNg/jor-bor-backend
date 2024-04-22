@@ -24,7 +24,6 @@ import { withParams } from "../middlewares/params";
 import path from "path";
 import { readFile, readFileSync } from "fs";
 import { routeHTML } from "../controllers/route";
-import { getGame } from "../controllers/game";
 
 const api = express.Router();
 api.post("/auth/login", login);
@@ -49,8 +48,6 @@ api.post("/lobby/leave", withAuth(leaveLobby));
 api.delete("/lobby/delete", withAuth(deleteLobby));
 api.post("/lobby/ready", withAuth(withParams(ready, true)));
 api.post("/lobby/unready", withAuth(withParams(ready, false)));
-
-api.get("/game", getGame)
 
 const routes = api.stack.map((r: any) => ({
   path: `/api${r.route.path}`,

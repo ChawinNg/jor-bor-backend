@@ -11,6 +11,7 @@ import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import api from "./routers/http";
 import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
+import { WerewolfGame } from "./controllers/game";
 
 async function main() {
   const PORT = process.env.PORT || 3000;
@@ -43,6 +44,8 @@ async function main() {
       credentials: true,
     },
   });
+
+  const werewolfGame = new WerewolfGame(io);
 
   io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} connected.`);
@@ -89,10 +92,16 @@ async function main() {
     });
 
     //Join lobby
-    socket.on("joinLobby", (lobby_id) => {
+    socket.on("joinLobby", async (lobby_id) => {
       socket.data.isReady = false;
       console.log(`Socket ${socket.id} has joined the lobby ${lobby_id}`);
       socket.join(lobby_id);
+
+      let { value, error } = await getLobbyMessagesRepo(lobby_id);
+      if (error !== undefined) return;
+      value.forEach((msg) => {
+        socket.emit("lobby message", msg);
+      });
 
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
@@ -199,11 +208,31 @@ async function main() {
       }
     });
 
+    // Start game
+    socket.on("hostStart", (lobby_id) => {
+      io.in(lobby_id).emit("startGame");
+    })
+
     //Join game
     socket.on("joinGame", (lobby_id) => {
-      console.log("Joining Game", lobby_id);
-      socket.join(lobby_id);
+      werewolfGame.handleJoinGame(socket, lobby_id);
     });
+
+    socket.on("start", (lobby_id) => {
+      werewolfGame.handleStart(socket, lobby_id);
+    })
+
+    socket.on("nightVote", (lobby_id, targetSocketId) => {
+      werewolfGame.handleWerewolfSelect(socket, lobby_id, targetSocketId);
+    })
+
+    socket.on("dayVote", (lobby_id, targetSocketId) => {
+      werewolfGame.handleDayVote(socket, lobby_id, targetSocketId);
+    })
+
+    socket.on('seerSelected', (lobby_id, id) => {
+      werewolfGame.handleSeer(socket, lobby_id, id);
+    })
 
     //Ghost message
     socket.on("ghost message", (message, lobby_id) => {
@@ -263,9 +292,9 @@ async function main() {
   // -------------------------------------
 }
 
-interface IUser {
-  _id: ObjectId;
-  name: string;
-}
+// interface IUser {
+//   _id: ObjectId;
+//   name: string;
+// }
 
 main();
