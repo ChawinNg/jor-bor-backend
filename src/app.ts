@@ -92,10 +92,16 @@ async function main() {
     });
 
     //Join lobby
-    socket.on("joinLobby", (lobby_id) => {
+    socket.on("joinLobby", async (lobby_id) => {
       socket.data.isReady = false;
       console.log(`Socket ${socket.id} has joined the lobby ${lobby_id}`);
       socket.join(lobby_id);
+
+      let { value, error } = await getLobbyMessagesRepo(lobby_id);
+      if (error !== undefined) return;
+      value.forEach((msg) => {
+        socket.emit("lobby message", msg);
+      });
 
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
@@ -214,6 +220,18 @@ async function main() {
 
     socket.on("start", (lobby_id) => {
       werewolfGame.handleStart(socket, lobby_id);
+    })
+
+    socket.on("nightVote", (lobby_id, targetSocketId) => {
+      werewolfGame.handleWerewolfSelect(socket, lobby_id, targetSocketId);
+    })
+
+    socket.on("dayVote", (lobby_id, targetSocketId) => {
+      werewolfGame.handleDayVote(socket, lobby_id, targetSocketId);
+    })
+
+    socket.on('seerSelected', (lobby_id, id) => {
+      werewolfGame.handleSeer(socket, lobby_id, id);
     })
 
     //Ghost message
