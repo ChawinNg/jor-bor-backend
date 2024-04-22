@@ -28,7 +28,7 @@ async function main() {
   const httpServer = http.createServer(app);
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_HOST,
       credentials: true,
     })
   );
@@ -40,7 +40,7 @@ async function main() {
   const io = new Server(httpServer, {
     cookie: true,
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_HOST,
       credentials: true,
     },
   });
@@ -106,20 +106,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -131,20 +133,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -156,20 +160,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -181,20 +187,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -211,7 +219,7 @@ async function main() {
     // Start game
     socket.on("hostStart", (lobby_id) => {
       io.in(lobby_id).emit("startGame");
-    })
+    });
 
     //Join game
     socket.on("joinGame", (lobby_id) => {
@@ -220,19 +228,19 @@ async function main() {
 
     socket.on("start", (lobby_id) => {
       werewolfGame.handleStart(socket, lobby_id);
-    })
+    });
 
     socket.on("nightVote", (lobby_id, targetSocketId) => {
       werewolfGame.handleWerewolfSelect(socket, lobby_id, targetSocketId);
-    })
+    });
 
     socket.on("dayVote", (lobby_id, targetSocketId) => {
       werewolfGame.handleDayVote(socket, lobby_id, targetSocketId);
-    })
+    });
 
-    socket.on('seerSelected', (lobby_id, id) => {
+    socket.on("seerSelected", (lobby_id, id) => {
       werewolfGame.handleSeer(socket, lobby_id, id);
-    })
+    });
 
     //Ghost message
     socket.on("ghost message", (message, lobby_id) => {
