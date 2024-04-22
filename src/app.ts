@@ -79,6 +79,18 @@ async function main() {
       io.emit("private message", message);
     });
 
+    //Invite Message
+    socket.on("invite message", (data) => {
+      let { user, to, message, time } = data;
+      let socketId;
+      for (let [id, socket] of io.of("/").sockets) {
+        if (socket.handshake.auth.username === to) {
+          socketId = id;
+        }
+      }
+      if (socketId) io.to(socketId).emit("invitation", data);
+    });
+
     //Lobby message
     socket.on("lobby message", async (message, lobby_id) => {
       let { error } = await saveMessageRepo({ ...message, lobby_id });

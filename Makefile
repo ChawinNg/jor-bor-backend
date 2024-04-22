@@ -1,4 +1,4 @@
-PHONNY: build push
+PHONNY: build push cleanup
 
 all: build push cleanup
 
@@ -9,4 +9,4 @@ push:
 	docker push 152.42.237.60:50000/compnet/werewolf-backend
 
 cleanup:
-	docker container rm 152.42.237.60:50000/compnet/werewolf-backend
+	docker image rm 152.42.237.60:50000/compnet/werewolf-backend
