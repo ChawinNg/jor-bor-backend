@@ -32,7 +32,7 @@ async function main() {
   const httpServer = http.createServer(app);
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_HOST,
       credentials: true,
     })
   );
@@ -44,7 +44,7 @@ async function main() {
   const io = new Server(httpServer, {
     cookie: true,
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_HOST,
       credentials: true,
     },
   });
