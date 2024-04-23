@@ -3,10 +3,10 @@ PHONNY: build push cleanup
 all: build push cleanup
 
 build:
-	docker buildx build -t 152.42.237.60:50000/compnet/werewolf-backend --platform linux/amd64 .
+	docker buildx build -t registry.digitalocean.com/brainflowingcompany/compnet/werewolf-backend --platform linux/amd64 .
 
 push:
-	docker push 152.42.237.60:50000/compnet/werewolf-backend
+	docker push registry.digitalocean.com/brainflowingcompany/compnet/werewolf-backend
 
 cleanup:
-	docker image rm 152.42.237.60:50000/compnet/werewolf-backend
+	docker image rm registry.digitalocean.com/brainflowingcompany/compnet/werewolf-backend
