@@ -10,7 +10,11 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import api from "./routers/http";
-import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
+import {
+  getLobbyMessagesRepo,
+  getMessagesRepo,
+  saveMessageRepo,
+} from "./repository/message";
 import { WerewolfGame } from "./controllers/game";
 
 async function main() {
@@ -63,14 +67,20 @@ async function main() {
 
     // Init chat messages
     socket.on("init chat", async ({ to }) => {
-      let { value, error } = await getMessagesRepo(users[socket.id].username, to);
+      let { value, error } = await getMessagesRepo(
+        users[socket.id].username,
+        to
+      );
       if (error !== undefined) return;
 
       value.forEach((msg) => {
         socket.emit("private message", msg);
       });
     });
-
+    //Global Message
+    socket.on("global message", async (message) => {
+      io.emit("global message", message);
+    });
     //Private Message
     socket.on("private message", async (message) => {
       let { error } = await saveMessageRepo(message);
@@ -118,20 +128,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -143,20 +155,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -168,20 +182,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -193,20 +209,22 @@ async function main() {
       const users: any[] = [];
       let room = io.sockets.adapter.rooms.get(lobby_id);
       if (room) {
-        console.log('room found')
-        console.log(room)
+        console.log("room found");
+        console.log(room);
 
         for (let [id, socket] of io.of("/").sockets) {
           if (socket.rooms.has(lobby_id)) {
             users.push({
-                socketID: id,
-                username: socket.handshake.auth.username,
-                userId: socket.handshake.auth.user_id,
-                ready: socket.data.isReady,
-              });
-             }
+              socketID: id,
+              username: socket.handshake.auth.username,
+              userId: socket.handshake.auth.user_id,
+              ready: socket.data.isReady,
+            });
+          }
         }
-      } else {console.log('not found')}
+      } else {
+        console.log("not found");
+      }
       console.log(users);
       io.in(lobby_id).emit("lobbyUsers", users);
     });
@@ -223,7 +241,7 @@ async function main() {
     // Start game
     socket.on("hostStart", (lobby_id) => {
       io.in(lobby_id).emit("startGame");
-    })
+    });
 
     //Join game
     socket.on("joinGame", (lobby_id) => {
@@ -232,19 +250,19 @@ async function main() {
 
     socket.on("start", (lobby_id) => {
       werewolfGame.handleStart(socket, lobby_id);
-    })
+    });
 
     socket.on("nightVote", (lobby_id, targetSocketId) => {
       werewolfGame.handleWerewolfSelect(socket, lobby_id, targetSocketId);
-    })
+    });
 
     socket.on("dayVote", (lobby_id, targetSocketId) => {
       werewolfGame.handleDayVote(socket, lobby_id, targetSocketId);
-    })
+    });
 
-    socket.on('seerSelected', (lobby_id, id) => {
+    socket.on("seerSelected", (lobby_id, id) => {
       werewolfGame.handleSeer(socket, lobby_id, id);
-    })
+    });
 
     //Ghost message
     socket.on("ghost message", (message, lobby_id) => {
