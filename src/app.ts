@@ -10,7 +10,11 @@ import { PromiseGuard } from "./utils/error";
 import { MongoDB } from "./database/mongo";
 import { Server, Socket } from "socket.io";
 import api from "./routers/http";
-import { getLobbyMessagesRepo, getMessagesRepo, saveMessageRepo } from "./repository/message";
+import {
+  getLobbyMessagesRepo,
+  getMessagesRepo,
+  saveMessageRepo,
+} from "./repository/message";
 import { WerewolfGame } from "./controllers/game";
 
 async function main() {
@@ -63,14 +67,20 @@ async function main() {
 
     // Init chat messages
     socket.on("init chat", async ({ to }) => {
-      let { value, error } = await getMessagesRepo(users[socket.id].username, to);
+      let { value, error } = await getMessagesRepo(
+        users[socket.id].username,
+        to
+      );
       if (error !== undefined) return;
 
       value.forEach((msg) => {
         socket.emit("private message", msg);
       });
     });
-
+    //Global Message
+    socket.on("global message", async (message) => {
+      io.emit("global message", message);
+    });
     //Private Message
     socket.on("private message", async (message) => {
       let { error } = await saveMessageRepo(message);
