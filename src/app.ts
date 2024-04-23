@@ -264,6 +264,10 @@ async function main() {
       werewolfGame.handleSeer(socket, lobby_id, id);
     });
 
+    socket.on("goNext", (lobby_id) => {
+      werewolfGame.handleNextStage(socket, lobby_id);
+    })
+
     //Ghost message
     socket.on("ghost message", (message, lobby_id) => {
       if (lobby_id.length) {
