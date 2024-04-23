@@ -31,6 +31,7 @@ export class WerewolfGame {
     votingTimers: Map<string, NodeJS.Timeout>;
     checkingTimers: Map<string, NodeJS.Timeout>;
     killingTimers: Map<string, NodeJS.Timeout>;
+    toNextStages: Map<string, boolean>;
 
     constructor(io: Server) {
         this.io = io;
@@ -38,6 +39,7 @@ export class WerewolfGame {
         this.votingTimers = new Map();
         this.checkingTimers = new Map();
         this.killingTimers = new Map();
+        this.toNextStages = new Map();
 
         // this.totalPlayers = users.length;
         // this.players = [];
@@ -170,8 +172,10 @@ export class WerewolfGame {
                     current.villager_side_left -= 1;
                 }
                 if (stage == 'day') {
+                    this.logStatus(lobby_id);
                     this.io.in(lobby_id).emit('targetVoted', votedPlayer);
                 } else if (stage == 'night') {
+                    this.logStatus(lobby_id);
                     this.io.in(lobby_id).emit('targetKilled', votedPlayer);
                 }
             } else {
@@ -198,7 +202,9 @@ export class WerewolfGame {
     handleSeer(socket: Socket, lobby_id: string, id: string) {
         let role;
         const current = this.gameState.get(lobby_id);
-        if (current) {
+        if (current?.alive_players.indexOf(socket.id) === -1) {
+            this.io.to(socket.id).emit('seerResult', id, 'seer dead');
+        } else if (current) {
             if (current.villagers.indexOf(id) !== -1) {
                 role = 'Villager'
             } else if (current.werewolves.indexOf(id) !== -1) {
@@ -344,30 +350,41 @@ export class WerewolfGame {
     //     }
     }
 
+    handleNextStage(socket: Socket, lobby_id: string) {
+        this.toNextStages.set(lobby_id, true);
+    }
+
     play(lobby_id: string) {
         console.log('game start');
-        this.performDayActions(lobby_id);
+        this.toNextStages.set(lobby_id, false);
+        // this.performDayActions(lobby_id);
         while (true) {
             if (!this.isGameOver(lobby_id)) {
                 this.performDayActions(lobby_id);
-                while (this.votingTimers.has(lobby_id)) {}
-                this.logStatus(lobby_id);
+                while (this.toNextStages.get(lobby_id) === false) {}
+                this.toNextStages.set(lobby_id, false);
+                // while (this.votingTimers.has(lobby_id)) {}
+                // this.logStatus(lobby_id);
             } else {
                 break;
             }
 
             if (!this.isGameOver(lobby_id)) {
                 this.performNightActions(lobby_id);
-                while (this.killingTimers.has(lobby_id)) {}
-                this.logStatus(lobby_id);
+                while (this.toNextStages.get(lobby_id) === false) {}
+                this.toNextStages.set(lobby_id, false);
+                // while (this.killingTimers.has(lobby_id)) {}
+                // this.logStatus(lobby_id);
             } else {
                 break;
             }
 
             if (!this.isGameOver(lobby_id)) {
                 this.performSeerActions(lobby_id);
-                while (this.checkingTimers.has(lobby_id)) {}
-                this.logStatus(lobby_id);
+                while (this.toNextStages.get(lobby_id) === false) {}
+                this.toNextStages.set(lobby_id, false);
+                // while (this.checkingTimers.has(lobby_id)) {}
+                // this.logStatus(lobby_id);
             } else {
                 break;
             }
@@ -381,6 +398,7 @@ export class WerewolfGame {
                 this.io.in(lobby_id).emit('werewolfWin')                
             }
             this.gameState.delete(lobby_id);
+            this.toNextStages.delete(lobby_id);
         }
     //     this.logStatus();
     //     while (true) {
