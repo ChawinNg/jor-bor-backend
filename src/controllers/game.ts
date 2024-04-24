@@ -57,7 +57,7 @@ export class WerewolfGame {
         // console.log(`socket ${socket.id} is joining game ${lobby_id}`);
         // socket.join(lobby_id);
         const userIds: any[] = [];
-        players.forEach((player) => {
+        players?.forEach((player) => {
             userIds.push(player._id);
         })
         
@@ -325,6 +325,18 @@ export class WerewolfGame {
         // Werewolf
         if (!this.isGameOver(lobby_id)) {
             this.startKillingTimer(lobby_id, 30);
+        } else {
+            console.log('game ended');
+            const current = this.gameState.get(lobby_id);
+            if (current) {
+                if (current.werewolf_side_left === 0) {
+                    this.io.in(lobby_id).emit('villagerWin')
+                } else {
+                    this.io.in(lobby_id).emit('werewolfWin')                
+                }
+                this.gameState.delete(lobby_id);
+                this.toNextStages.delete(lobby_id);
+            }
         }
         // while (true) {
         //     const selectedPlayerIndex = Math.floor(Math.random() * this.alive_players.length);
@@ -360,12 +372,36 @@ export class WerewolfGame {
     performSeerActions(lobby_id: string) {
         if (!this.isGameOver(lobby_id)) {
             this.startCheckingTimer(lobby_id, 20);
+        } else {
+            console.log('game ended');
+            const current = this.gameState.get(lobby_id);
+            if (current) {
+                if (current.werewolf_side_left === 0) {
+                    this.io.in(lobby_id).emit('villagerWin')
+                } else {
+                    this.io.in(lobby_id).emit('werewolfWin')                
+                }
+                this.gameState.delete(lobby_id);
+                this.toNextStages.delete(lobby_id);
+            }
         }
     }
 
     performDayActions(lobby_id: string) {
         if (!this.isGameOver(lobby_id)) {
             this.startVotingTimer(lobby_id, 30);
+        } else {
+            console.log('game ended');
+            const current = this.gameState.get(lobby_id);
+            if (current) {
+                if (current.werewolf_side_left === 0) {
+                    this.io.in(lobby_id).emit('villagerWin')
+                } else {
+                    this.io.in(lobby_id).emit('werewolfWin')                
+                }
+                this.gameState.delete(lobby_id);
+                this.toNextStages.delete(lobby_id);
+            }
         }
     //     // for some talking period
     //     const randomPlayerIndex = Math.floor(Math.random() * this.alive_players.length);
