@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { IGame } from "../models/game";
 import { Role, IPlayer } from "../models/player";
 import { Request, Response } from "express";
+import { getLobbyById } from './lobby';
 
 
 interface IUser {
@@ -51,67 +52,93 @@ export class WerewolfGame {
         // this.play();
     }
 
-    handleJoinGame(socket: Socket, lobby_id: string) {
+    handleJoinGame(socket: Socket, lobby_id: string, players: any[]) {
         socket.data.role = null;
-        console.log(`socket ${socket.id} is joining game ${lobby_id}`);
-        socket.join(lobby_id);
-
+        // console.log(`socket ${socket.id} is joining game ${lobby_id}`);
+        // socket.join(lobby_id);
+        const userIds: any[] = [];
+        players.forEach((player) => {
+            userIds.push(player._id);
+        })
         
         const users: any[] = [];
-        let room = this.io.sockets.adapter.rooms.get(lobby_id);
-        if (room) {
-            console.log('room found')
-            console.log(room)
-            
-            for (let [id, socket] of this.io.of("/").sockets) {
-                if (socket.rooms.has(lobby_id)) {
-                    users.push({
-                        socketID: id,
-                        username: socket.handshake.auth.username,
-                        userId: socket.handshake.auth.user_id,
-                        role: socket.data.role,
-                    });
-                }
+
+        for (let [id, socket] of this.io.of("/").sockets) {
+            if (userIds.indexOf(socket.handshake.auth.user_id) !== -1) {
+                users.push({
+                    socketID: id,
+                    username: socket.handshake.auth.username,
+                    userId: socket.handshake.auth.user_id,
+                    role: socket.data.role,
+                });
+                socket.join(lobby_id);
             }
-        } else {console.log('not found')}
-        console.log(users);
+        }
+        
+        // let room = this.io.sockets.adapter.rooms.get(lobby_id);
+        // if (room) {
+        //     console.log('room found')
+        //     console.log(room)
+            
+        //     for (let [id, socket] of this.io.of("/").sockets) {
+        //         if (socket.rooms.has(lobby_id)) {
+        //             users.push({
+        //                 socketID: id,
+        //                 username: socket.handshake.auth.username,
+        //                 userId: socket.handshake.auth.user_id,
+        //                 role: socket.data.role,
+        //             });
+        //         }
+        //     }
+        // } else {console.log('not found')}
+        // console.log(users);
 
         const initGameData: GameData = {
-            players: new Array(socket.id),
+            players: userIds,
             villagers: new Array(),
             werewolves: new Array(),
             seers: '',
-            alive_players: new Array(socket.id),
+            alive_players: userIds,
             votes: new Array(),
-            totalPlayers: 1,
+            totalPlayers: userIds.length,
             villager_side_left: 0,
             seer_left: 0,
             werewolf_side_left: 0,
             isNight: false,
         }
-
         if (!this.gameState.has(lobby_id)) {
             this.gameState.set(lobby_id, initGameData);
-        } else {
-            if (this.gameState.has(lobby_id)) {
-                const current = this.gameState.get(lobby_id);
-                if (current?.players.indexOf(socket.id) === -1) {
-                    current?.players.push(socket.id);
-                    current?.alive_players.push(socket.id);
-                    if (current?.totalPlayers !== undefined) {
-                        current.totalPlayers += 1;
-                    }
-                }
-            }
         }
+
+        // if (!this.gameState.has(lobby_id)) {
+        //     this.gameState.set(lobby_id, initGameData);
+        // } else {
+        //     if (this.gameState.has(lobby_id)) {
+        //         const current = this.gameState.get(lobby_id);
+        //         if (current?.players.indexOf(socket.id) === -1) {
+        //             current?.players.push(socket.id);
+        //             current?.alive_players.push(socket.id);
+        //             if (current?.totalPlayers !== undefined) {
+        //                 current.totalPlayers += 1;
+        //             }
+        //         }
+        //     }
+        // }
         console.log('Current room', this.gameState.get(lobby_id));
 
         this.io.in(lobby_id).emit("inGameUsers", users);
     }
 
     handleStart(socket: Socket, lobby_id: string) {
-        this.assignRoles(lobby_id);
-        this.play(lobby_id);
+        const current = this.gameState.get(lobby_id);
+        if (current && current.votes.indexOf(socket.handshake.auth.user_id) === -1) {
+            current?.votes.push(socket.handshake.auth.user_id);
+        }
+        if (current && current.votes.length === current.totalPlayers) {
+            current.votes = [];
+            this.assignRoles(lobby_id);
+            this.play(lobby_id);
+        }
     }
 
     handleDayVote(socket: Socket, lobby_id: string, targetSocketId: string) {
@@ -202,7 +229,7 @@ export class WerewolfGame {
     handleSeer(socket: Socket, lobby_id: string, id: string) {
         let role;
         const current = this.gameState.get(lobby_id);
-        if (current?.alive_players.indexOf(socket.id) === -1) {
+        if (current?.alive_players.indexOf(socket.handshake.auth.userId) === -1) {
             this.io.to(socket.id).emit('seerResult', id, 'seer dead');
         } else if (current) {
             if (current.villagers.indexOf(id) !== -1) {
@@ -361,6 +388,7 @@ export class WerewolfGame {
         while (true) {
             if (!this.isGameOver(lobby_id)) {
                 this.performDayActions(lobby_id);
+                console.log('day action')
                 while (this.toNextStages.get(lobby_id) === false) {}
                 this.toNextStages.set(lobby_id, false);
                 // while (this.votingTimers.has(lobby_id)) {}
@@ -371,6 +399,7 @@ export class WerewolfGame {
 
             if (!this.isGameOver(lobby_id)) {
                 this.performNightActions(lobby_id);
+                console.log('night action')
                 while (this.toNextStages.get(lobby_id) === false) {}
                 this.toNextStages.set(lobby_id, false);
                 // while (this.killingTimers.has(lobby_id)) {}
@@ -381,6 +410,7 @@ export class WerewolfGame {
 
             if (!this.isGameOver(lobby_id)) {
                 this.performSeerActions(lobby_id);
+                console.log('seer action')
                 while (this.toNextStages.get(lobby_id) === false) {}
                 this.toNextStages.set(lobby_id, false);
                 // while (this.checkingTimers.has(lobby_id)) {}
@@ -430,12 +460,28 @@ export class WerewolfGame {
 
             if (timer <= 0) {
                 clearInterval(interval);
-                this.io.in(lobby_id).emit('votingEnded');
+                // this.io.in(lobby_id).emit('votingEnded');
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('votingEnded');
+                        }
+                    }
+                }
                 this.votingTimers.delete(lobby_id);
                 return true
                 // this.handleFinalizeVote(lobby_id)
             } else {
-                this.io.in(lobby_id).emit('votingTimer', timer);
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('votingTimer', timer);
+                        }
+                    }
+                }
+                // this.io.in(lobby_id).emit('votingTimer', timer);
             }
         }, 1000);
 
@@ -449,12 +495,28 @@ export class WerewolfGame {
 
             if (timer <= 0) {
                 clearInterval(interval);
-                this.io.in(lobby_id).emit('killingEnded');
+                // this.io.in(lobby_id).emit('killingEnded');
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('killingEnded');
+                        }
+                    }
+                }
                 this.killingTimers.delete(lobby_id);
                 return true
                 // this.handleFinalizeVote(lobby_id)
             } else {
-                this.io.in(lobby_id).emit('killingTimer', timer);
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('killingTimer', timer);
+                        }
+                    }
+                }
+                // this.io.in(lobby_id).emit('killingTimer', timer);
             }
         }, 1000);
 
@@ -468,12 +530,28 @@ export class WerewolfGame {
 
             if (timer <= 0) {
                 clearInterval(interval);
-                this.io.in(lobby_id).emit('checkingEnded');
+                // this.io.in(lobby_id).emit('checkingEnded');
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('checkingEnded');
+                        }
+                    }
+                }
                 this.checkingTimers.delete(lobby_id);
                 return true
                 // this.handleFinalizeVote(lobby_id)
             } else {
-                this.io.in(lobby_id).emit('checkingTimer', timer);
+                // this.io.in(lobby_id).emit('checkingTimer', timer);
+                const current = this.gameState.get(lobby_id)?.players;
+                if (current) {
+                    for (let [id, socket] of this.io.of("/").sockets) {
+                        if (current.indexOf(socket.handshake.auth.user_id) !== -1) {
+                            this.io.to(id).emit('checkingTimer', timer);
+                        }
+                    }
+                }
             }
         }, 1000);
 
@@ -499,9 +577,10 @@ export class WerewolfGame {
             if (room) {
                 console.log('room found')
                 console.log(room)
+                const currentP = this.gameState.get(lobby_id)?.players;
 
                 for (let [id, socket] of this.io.of("/").sockets) {
-                    if (socket.rooms.has(lobby_id)) {
+                    if (currentP?.indexOf(socket.handshake.auth.user_id) !== -1) {
                         let role;
                         if (current.villagers.indexOf(id) !== -1) {role = Role.Villager;}
                         else if (current.werewolves.indexOf(id) !== -1) {role = Role.Werewolf;}

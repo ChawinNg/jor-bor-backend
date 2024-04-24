@@ -244,8 +244,12 @@ async function main() {
     });
 
     //Join game
-    socket.on("joinGame", (lobby_id) => {
-      werewolfGame.handleJoinGame(socket, lobby_id);
+    socket.on("joinGame", (lobby_id, players) => {
+      werewolfGame.handleJoinGame(socket, lobby_id, players);
+    });
+
+    socket.on("joined", (lobby_id, players) => {
+      werewolfGame.handleJoinGame(socket, lobby_id, players);
     });
 
     socket.on("start", (lobby_id) => {
