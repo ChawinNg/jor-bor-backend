@@ -268,8 +268,16 @@ async function main() {
       werewolfGame.handleSeer(socket, lobby_id, id);
     });
 
-    socket.on("goNext", (lobby_id) => {
-      werewolfGame.handleNextStage(socket, lobby_id);
+    socket.on("goDay", (lobby_id) => {
+      werewolfGame.performDayActions(lobby_id);
+    })
+
+    socket.on("goNight", (lobby_id) => {
+      werewolfGame.performNightActions(lobby_id);
+    })
+
+    socket.on("goCheck", (lobby_id) => {
+      werewolfGame.performSeerActions(lobby_id);
     })
 
     //Ghost message

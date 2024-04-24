@@ -32,7 +32,7 @@ export class WerewolfGame {
     votingTimers: Map<string, NodeJS.Timeout>;
     checkingTimers: Map<string, NodeJS.Timeout>;
     killingTimers: Map<string, NodeJS.Timeout>;
-    toNextStages: Map<string, boolean>;
+    toNextStages: Map<string, number>; // 1: day, 2:night, 3:chekc
 
     constructor(io: Server) {
         this.io = io;
@@ -137,7 +137,7 @@ export class WerewolfGame {
         if (current && current.votes.length === current.totalPlayers) {
             current.votes = [];
             this.assignRoles(lobby_id);
-            this.play(lobby_id);
+            this.performDayActions(lobby_id);
         }
     }
 
@@ -323,7 +323,9 @@ export class WerewolfGame {
     // Night phase
     performNightActions(lobby_id: string) {
         // Werewolf
-        this.startKillingTimer(lobby_id, 30);
+        if (!this.isGameOver(lobby_id)) {
+            this.startKillingTimer(lobby_id, 30);
+        }
         // while (true) {
         //     const selectedPlayerIndex = Math.floor(Math.random() * this.alive_players.length);
         //     const selectedPlayer = this.alive_players[selectedPlayerIndex];
@@ -356,11 +358,15 @@ export class WerewolfGame {
     }
 
     performSeerActions(lobby_id: string) {
-        this.startCheckingTimer(lobby_id, 20);
+        if (!this.isGameOver(lobby_id)) {
+            this.startCheckingTimer(lobby_id, 20);
+        }
     }
 
     performDayActions(lobby_id: string) {
-        this.startVotingTimer(lobby_id, 30);
+        if (!this.isGameOver(lobby_id)) {
+            this.startVotingTimer(lobby_id, 30);
+        }
     //     // for some talking period
     //     const randomPlayerIndex = Math.floor(Math.random() * this.alive_players.length);
     //     const randomPlayer = this.alive_players[randomPlayerIndex]
@@ -377,81 +383,81 @@ export class WerewolfGame {
     //     }
     }
 
-    handleNextStage(socket: Socket, lobby_id: string) {
-        this.toNextStages.set(lobby_id, true);
-    }
+    // handleNextStage(socket: Socket, lobby_id: string) {
+    //     this.toNextStages.set(lobby_id, true);
+    // }
 
-    play(lobby_id: string) {
-        console.log('game start');
-        this.toNextStages.set(lobby_id, false);
-        // this.performDayActions(lobby_id);
-        while (true) {
-            if (!this.isGameOver(lobby_id)) {
-                this.performDayActions(lobby_id);
-                console.log('day action')
-                while (this.toNextStages.get(lobby_id) === false) {}
-                this.toNextStages.set(lobby_id, false);
-                // while (this.votingTimers.has(lobby_id)) {}
-                // this.logStatus(lobby_id);
-            } else {
-                break;
-            }
-
-            if (!this.isGameOver(lobby_id)) {
-                this.performNightActions(lobby_id);
-                console.log('night action')
-                while (this.toNextStages.get(lobby_id) === false) {}
-                this.toNextStages.set(lobby_id, false);
-                // while (this.killingTimers.has(lobby_id)) {}
-                // this.logStatus(lobby_id);
-            } else {
-                break;
-            }
-
-            if (!this.isGameOver(lobby_id)) {
-                this.performSeerActions(lobby_id);
-                console.log('seer action')
-                while (this.toNextStages.get(lobby_id) === false) {}
-                this.toNextStages.set(lobby_id, false);
-                // while (this.checkingTimers.has(lobby_id)) {}
-                // this.logStatus(lobby_id);
-            } else {
-                break;
-            }
-        }
-        console.log('game ended');
-        const current = this.gameState.get(lobby_id);
-        if (current) {
-            if (current.werewolf_side_left === 0) {
-                this.io.in(lobby_id).emit('villagerWin')
-            } else {
-                this.io.in(lobby_id).emit('werewolfWin')                
-            }
-            this.gameState.delete(lobby_id);
-            this.toNextStages.delete(lobby_id);
-        }
-    //     this.logStatus();
+    // play(lobby_id: string) {
+    //     console.log('game start');
+    //     this.toNextStages.set(lobby_id, false);
+    //     // this.performDayActions(lobby_id);
     //     while (true) {
-    //         if (!this.isGameOver()) {
-    //             this.performNightActions();
-    //             this.logStatus();
+    //         if (!this.isGameOver(lobby_id)) {
+    //             this.performDayActions(lobby_id);
+    //             console.log('day action')
+    //             while (this.toNextStages.get(lobby_id) === false) {}
+    //             this.toNextStages.set(lobby_id, false);
+    //             // while (this.votingTimers.has(lobby_id)) {}
+    //             // this.logStatus(lobby_id);
     //         } else {
     //             break;
     //         }
-    //         if (!this.isGameOver()) {
-    //             this.performDayActions();
-    //             this.logStatus();
+
+    //         if (!this.isGameOver(lobby_id)) {
+    //             this.performNightActions(lobby_id);
+    //             console.log('night action')
+    //             while (this.toNextStages.get(lobby_id) === false) {}
+    //             this.toNextStages.set(lobby_id, false);
+    //             // while (this.killingTimers.has(lobby_id)) {}
+    //             // this.logStatus(lobby_id);
+    //         } else {
+    //             break;
+    //         }
+
+    //         if (!this.isGameOver(lobby_id)) {
+    //             this.performSeerActions(lobby_id);
+    //             console.log('seer action')
+    //             while (this.toNextStages.get(lobby_id) === false) {}
+    //             this.toNextStages.set(lobby_id, false);
+    //             // while (this.checkingTimers.has(lobby_id)) {}
+    //             // this.logStatus(lobby_id);
     //         } else {
     //             break;
     //         }
     //     }
-    //     console.log('game end');
-    //     if (this.werewolf_side_left === 0) {
-    //         console.log('Villagers win');
-    //     } else {
-    //         console.log('Werewolves win');
+    //     console.log('game ended');
+    //     const current = this.gameState.get(lobby_id);
+    //     if (current) {
+    //         if (current.werewolf_side_left === 0) {
+    //             this.io.in(lobby_id).emit('villagerWin')
+    //         } else {
+    //             this.io.in(lobby_id).emit('werewolfWin')                
+    //         }
+    //         this.gameState.delete(lobby_id);
+    //         this.toNextStages.delete(lobby_id);
     //     }
-    }
+    // //     this.logStatus();
+    // //     while (true) {
+    // //         if (!this.isGameOver()) {
+    // //             this.performNightActions();
+    // //             this.logStatus();
+    // //         } else {
+    // //             break;
+    // //         }
+    // //         if (!this.isGameOver()) {
+    // //             this.performDayActions();
+    // //             this.logStatus();
+    // //         } else {
+    // //             break;
+    // //         }
+    // //     }
+    // //     console.log('game end');
+    // //     if (this.werewolf_side_left === 0) {
+    // //         console.log('Villagers win');
+    // //     } else {
+    // //         console.log('Werewolves win');
+    // //     }
+    // }
 
     startVotingTimer(lobby_id: string, duration: number) {
         let timer = duration;
