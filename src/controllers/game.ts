@@ -298,15 +298,15 @@ export class WerewolfGame {
 
                         switch (info.role) {
                             case (Role.Werewolf): {
-                                current.werewolves.push(id);
+                                current.werewolves.push(info.userId);
                                 break;
                             }
                             case (Role.Seer): {
-                                current.seers = id;
+                                current.seers = info.userId;
                                 break;
                             }
                             default: {
-                                current.villagers.push(id);
+                                current.villagers.push(info.userId);
                                 break;
                             }
                         }
